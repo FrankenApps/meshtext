@@ -5,7 +5,6 @@ edition = "2021"
 description = "Generate vertex-vertex meshes from text."
 readme = "README.md"
 repository = "https://github.com/FrankenApps/meshtext"
-documentation = "https://docs.rs/meshtext"
 license = "MIT OR Apache-2.0"
 keywords = ["graphics", "gamedev", "delauny", "render", "triangulation"]
 categories = ["graphics", "game-development", "rendering"]
