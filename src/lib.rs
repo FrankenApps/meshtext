@@ -24,6 +24,9 @@ mod types {
     mod bounding_box;
     pub use bounding_box::BoundingBox;
 
+    mod cache_type;
+    pub use cache_type::CacheType;
+
     mod glyph_outline;
     pub(crate) use glyph_outline::GlyphOutline;
 

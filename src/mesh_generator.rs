@@ -9,7 +9,7 @@ use crate::{
         raster_to_mesh, raster_to_mesh_indexed, text_mesh_from_data, text_mesh_from_data_indexed,
         GlyphOutlineBuilder,
     },
-    BoundingBox, Glyph, IndexedMeshText, MeshText, QualitySettings, TextSection,
+    BoundingBox, Glyph, IndexedMeshText, MeshText, QualitySettings, TextSection, CacheType,
 };
 
 type Mesh = (Vec<Vec3A>, BoundingBox);
@@ -101,6 +101,62 @@ impl MeshGenerator {
             quality: quality,
             use_cache: false,
         }
+    }
+
+    /// Fills the internal cache of a [MeshGenerator] with the given characters.
+    /// 
+    /// Arguments:
+    /// 
+    /// * `glyphs`: The glyphs that will be precached. Each character should appear exactly once.
+    /// * `flat`: Wether the flat or three-dimensional variant of the characters should be preloaded. 
+    /// If both variants should be precached this function must be called twice with this parameter set
+    /// to `true` and `false`.
+    /// * `cache`: An optional value that controls which cache will be filled. `None` means both caches will be filled.
+    /// 
+    /// Returns:
+    /// 
+    /// A [Result] indicating if the operation was successful.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// use meshtext::MeshGenerator;
+    /// 
+    /// let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");
+    /// let mut generator = MeshGenerator::new(font_data);
+    /// 
+    /// let common = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".to_string();
+    /// 
+    /// // Precache both flat and three-dimensional glyphs both for indexed and non-indexed meshes.
+    /// generator.precache_glyphs(&common, false, None);
+    /// generator.precache_glyphs(&common, true, None);
+    /// ```
+    pub fn precache_glyphs(&mut self, glyphs: &String, flat: bool, cache: Option<CacheType>)  -> Result<(), Box<dyn MeshTextError>> {
+        if let Some(cache_type) = cache {
+            match cache_type {
+                CacheType::Normal => {
+                    for c in glyphs.chars() {
+                        self.generate_glyph(c, flat, None)?;
+                    }
+                },
+                CacheType::Indexed => {
+                    for c in glyphs.chars() {
+                        self.generate_glyph_indexed(c, flat, None)?;
+                    }
+                },
+            }
+        }
+        else {
+            // If no type is set explicitely, both variants will be precached.
+            for c in glyphs.chars() {
+                self.generate_glyph(c, flat, None)?;
+            }
+            for c in glyphs.chars() {
+                self.generate_glyph_indexed(c, flat, None)?;
+            }
+        }
+
+        Ok(())
     }
 
     /// Generates the [BasicMeshText] of a single character with a custom transformation.
