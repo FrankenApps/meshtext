@@ -1,3 +1,5 @@
+#![doc(html_favicon_url = "https://raw.githubusercontent.com/FrankenApps/meshtext/master/logo.png")]
+#![doc(html_logo_url = "https://raw.githubusercontent.com/FrankenApps/meshtext/master/logo.png")]
 //! Generate 2D or 3D triangle meshes from text.
 //!
 //! Generate vertices or indices and vertices for a
