@@ -1,7 +1,10 @@
 # Meshtext
+[![Crates.io](https://img.shields.io/crates/v/meshtext.svg)](https://crates.io/crates/meshtext) 
+[![docs.rs](https://docs.rs/meshtext/badge.svg)](https://docs.rs/meshtext/)
+
 Meshtext is a font triangulation tool for 3D scenes.
 
-⚠️ Version `0.1` of this crate focuses on correctness and not so much on speed. ⚠️
+⚠️ Version `0.1` of this crate focuses on correctness and less on speed. ⚠️
 
 The idea is to have a feature complete Proof-of-Concept first and then start optimizing.
 
