@@ -26,4 +26,5 @@ winit = "0.26.1"
 
 [[bench]]
 name = "bench_main"
+path = "benches/bench_main.rs"
 harness = false
