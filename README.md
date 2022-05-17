@@ -20,9 +20,9 @@ The idea is to have a feature complete Proof-of-Concept first and then start opt
 * There is no support for subscripts and superscripts
 
 ## TODO
-- [ ] Add a 2D mesh generator where each vertex is composed of two coordinates
+- [x] Add a 2D mesh generator where each vertex is composed of two coordinates
 - [ ] Implement an optimizer that removes redundant vertices and triangles
-- [ ] Add proper benchmarks
+- [x] Add proper benchmarks
 - [ ] Optimize for speed
 - [ ] Evaluate `no-std` support
 
