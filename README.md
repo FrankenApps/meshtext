@@ -26,6 +26,9 @@ The idea is to have a feature complete Proof-of-Concept first and then start opt
 - [ ] Optimize for speed
 - [ ] Evaluate `no-std` support
 
+## Caveats
+It is not recommended to use the font included in the crate. It is only included for the purpose of testing and the character set has been limited, in order to keep the size of the crate small.
+
 ## Attribution
 - Depends heavily on [`cdt`](https://crates.io/crates/cdt) for triangulation.
 - Uses [`ttf-parser`](https://crates.io/crates/ttf-parser) for font loading.

@@ -1,3 +1,6 @@
+/// This example demonstrates how to generate an indexed mesh
+/// for the uppercase character "L".
+///
 use meshtext::{Glyph, IndexedMeshText, MeshGenerator};
 
 fn main() {

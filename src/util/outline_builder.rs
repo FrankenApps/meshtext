@@ -128,8 +128,8 @@ fn point_on_line(a: &Point, b: &Point, t: f32) -> Point {
 ///
 /// The coordinates of the given point.
 fn point_on_quad(p0: &Point, p1: &Point, p2: &Point, t: f32) -> Point {
-    let a = point_on_line(&p0, &p1, t);
-    let b = point_on_line(&p1, &p2, t);
+    let a = point_on_line(p0, p1, t);
+    let b = point_on_line(p1, p2, t);
     point_on_line(&a, &b, t)
 }
 

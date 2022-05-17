@@ -16,8 +16,8 @@ const LOWER_Z: f32 = -0.5;
 /// * `edges`: The indices of points that form closed paths.
 pub(crate) fn triangulate_between_edges(
     vertices: &mut Vec<Vec3A>,
-    points: &Vec<(f32, f32)>,
-    edges: &Vec<(usize, usize)>,
+    points: &[(f32, f32)],
+    edges: &[(usize, usize)],
 ) {
     for edge in edges.iter() {
         // First triangle.
@@ -43,9 +43,9 @@ pub(crate) fn triangulate_between_edges(
 /// * `indices`: The [Vec] of indices to which the indices will be appended.
 /// * `edges`: The indices of points that form closed paths.
 pub(crate) fn triangulate_between_edges_indexed(
-    vertices: &mut Vec<Vec3A>,
+    vertices: &mut [Vec3A],
     indices: &mut Vec<u32>,
-    edges: &Vec<(usize, usize)>,
+    edges: &[(usize, usize)],
 ) {
     let flat_count = (vertices.len() / 2) as u32;
 

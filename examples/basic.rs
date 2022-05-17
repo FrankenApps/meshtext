@@ -1,3 +1,6 @@
+/// This example demonstrates how to generate a mesh
+/// for the uppercase character "A".
+///
 use meshtext::{Glyph, MeshGenerator, MeshText};
 
 fn main() {

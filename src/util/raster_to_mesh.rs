@@ -142,7 +142,7 @@ fn get_glyph_area_triangulation(
     let mut edges = Vec::new();
     for c in contours.iter() {
         let next = edges.len();
-        for (a, b) in c.into_iter().zip(c.into_iter().skip(1)) {
+        for (a, b) in c.iter().zip(c.iter().skip(1)) {
             edges.push((*a, *b));
         }
         if let Some(start) = edges.get(next) {

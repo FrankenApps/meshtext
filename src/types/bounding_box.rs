@@ -39,8 +39,8 @@ impl BoundingBox {
     /// The empty [BoundingBox].
     pub(crate) fn empty() -> Self {
         Self {
-            max: Vec3A::new(0f32, 0f32, 0f32),
-            min: Vec3A::new(0f32, 0f32, 0f32),
+            max: Vec3A::ZERO,
+            min: Vec3A::ZERO,
         }
     }
 
@@ -163,6 +163,22 @@ impl BoundingBox {
     pub fn transform(&mut self, transformation: &Mat4) {
         self.min = transformation.transform_point3a(self.min);
         self.max = transformation.transform_point3a(self.max);
+    }
+
+    /// Applies the given two-dimensional transformation to this [BoundingBox].
+    ///
+    /// Arguments:
+    ///
+    /// * `transformation`: The transformation that will be applied.
+    pub(crate) fn transform_2d(&mut self, transformation: &glam::Mat3) {
+        let mut min = glam::Vec2::new(self.min.x, self.min.y);
+        let mut max = glam::Vec2::new(self.max.x, self.max.y);
+
+        min = transformation.transform_point2(min);
+        max = transformation.transform_point2(max);
+
+        self.min = Vec3A::new(min.x, min.y, 0f32);
+        self.max = Vec3A::new(max.x, max.y, 0f32);
     }
 }
 

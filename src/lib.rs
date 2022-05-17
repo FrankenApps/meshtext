@@ -54,6 +54,9 @@ pub(crate) mod util {
     mod glam_conversions;
     pub(crate) use glam_conversions::*;
 
+    mod mesh_to_flat_2d;
+    pub(crate) use mesh_to_flat_2d::*;
+
     mod outline_builder;
     pub(crate) use outline_builder::GlyphOutlineBuilder;
 

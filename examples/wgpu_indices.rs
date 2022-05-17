@@ -1,9 +1,9 @@
-/// This example demonstrates how to draw a 2D glyph using wgpu.
+/// This example demonstrates how to draw a section of 2D text using wgpu.
 ///
-/// Please note that the character would look better with antialiasing,
+/// Please note that the characters would look better with antialiasing,
 /// but in order to keep the sample simple this was ommited.
 ///
-use meshtext::{Glyph, MeshGenerator, MeshText};
+use meshtext::{IndexedMeshText, MeshGenerator, TextSection};
 use std::borrow::Cow;
 use wgpu::util::DeviceExt;
 use winit::{
@@ -15,8 +15,8 @@ use winit::{
 const SHADER: &'static str = r##"
 [[stage(vertex)]]
 fn vs_main([[location(0)]] position: vec2<f32>) -> [[builtin(position)]] vec4<f32> {
-    let scale = vec3<f32>(2.0, 2.0, 2.0);
-    return vec4<f32>(position.x * scale.x - 0.5, position.y * scale.y - 0.5, 0.0, 1.0);
+    let scale = vec3<f32>(0.27, 0.27, 0.2);
+    return vec4<f32>(position.x * scale.x - 1.0, position.y * scale.y, 0.0, 1.0);
 }
 
 [[stage(fragment)]]
@@ -25,7 +25,13 @@ fn fs_main() -> [[location(0)]] vec4<f32> {
 }
 "##;
 
-async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vertex_count: u32) {
+async fn run(
+    event_loop: EventLoop<()>,
+    window: Window,
+    vertex_data: &[u8],
+    indices: &[u8],
+    index_count: u32,
+) {
     let size = window.inner_size();
     let instance = wgpu::Instance::new(wgpu::Backends::all());
     let surface = unsafe { instance.create_surface(&window) };
@@ -68,6 +74,12 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
         label: Some("Vertex Buffer"),
         contents: vertex_data,
         usage: wgpu::BufferUsages::VERTEX,
+    });
+
+    let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("Index Buffer"),
+        contents: indices,
+        usage: wgpu::BufferUsages::INDEX,
     });
 
     let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -145,8 +157,9 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
                         depth_stencil_attachment: None,
                     });
                     rpass.set_vertex_buffer(0, vertex_buffer.slice(..));
+                    rpass.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint32);
                     rpass.set_pipeline(&render_pipeline);
-                    rpass.draw(0..vertex_count, 0..1);
+                    rpass.draw_indexed(0..index_count, 0, 0..1);
                 }
 
                 queue.submit(Some(encoder.finish()));
@@ -161,15 +174,13 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
     });
 }
 
-fn get_vertices_for_a() -> Vec<f32> {
-    let character = 'A';
+fn get_text_vertices() -> IndexedMeshText {
     let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");
     let mut generator = MeshGenerator::new(font_data);
-    let result: MeshText = generator
-        .generate_glyph_2d(character, None)
-        .expect("Failed to generate glyph.");
 
-    result.vertices
+    generator
+        .generate_section_2d("This is a test.", None)
+        .expect("Failed to generate glyph.")
 }
 
 fn main() {
@@ -177,16 +188,22 @@ fn main() {
     let window = winit::window::Window::new(&event_loop).unwrap();
     window.set_inner_size(winit::dpi::LogicalSize::new(600, 600));
 
-    let text_vertices = get_vertices_for_a();
+    let meshtext = get_text_vertices();
     let mut raw_data: Vec<u8> = Vec::new();
-    for vert in text_vertices.iter() {
+    for vert in meshtext.vertices.iter() {
         raw_data.extend_from_slice(vert.to_le_bytes().as_slice());
+    }
+
+    let mut raw_index_data: Vec<u8> = Vec::new();
+    for ind in meshtext.indices.iter() {
+        raw_index_data.extend_from_slice(ind.to_le_bytes().as_slice());
     }
 
     pollster::block_on(run(
         event_loop,
         window,
         raw_data.as_slice(),
-        text_vertices.len() as u32 / 2,
+        raw_index_data.as_slice(),
+        meshtext.indices.len() as u32,
     ));
 }

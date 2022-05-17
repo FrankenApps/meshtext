@@ -1,3 +1,7 @@
+/// This example demonstrates how to convert the
+/// text "Meshtext" into a 3D indexed mesh and how to
+/// export it as GLTF.
+///
 use std::{fs, mem};
 
 use gltf_json::validation::Checked::Valid;
@@ -77,18 +81,6 @@ fn export(
         target: Some(Valid(gltf_json::buffer::Target::ArrayBuffer)),
     };
 
-    /* let index_buffer_length = (index_data.len() * mem::size_of::<u32>()) as u32;
-    let index_buffer = gltf_json::Buffer {
-        byte_length: index_buffer_length,
-        extensions: Default::default(),
-        extras: Default::default(),
-        name: None,
-        uri: if output == Output::Standard {
-            Some("buffer1.bin".into())
-        } else {
-            None
-        },
-    }; */
     let index_buffer_view = gltf_json::buffer::View {
         buffer: gltf_json::Index::new(0),
         byte_length: (index_data.len() * mem::size_of::<u32>()) as u32,
@@ -258,7 +250,7 @@ fn main() {
     );
     let result: IndexedMeshText = generator
         .generate_section(
-            &"Meshtext".to_string(),
+            "Meshtext",
             false,
             Some(&glam::Mat4::from_scale(glam::Vec3::new(1f32, 1f32, 0.1f32)).to_cols_array()),
         )

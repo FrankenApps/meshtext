@@ -1,3 +1,7 @@
+/// This example demonstrates how to convert the
+/// text "Meshtext" into a 3D mesh and how to
+/// export it as GLTF.
+///
 use std::{fs, mem};
 
 use gltf_json::validation::Checked::Valid;
@@ -200,7 +204,7 @@ fn main() {
     let mut generator = MeshGenerator::new(font_data);
     let result: MeshText = generator
         .generate_section(
-            &"Hello World!".to_string(),
+            "Hello World!",
             false,
             Some(&glam::Mat4::from_scale(glam::Vec3::new(1f32, 1f32, 0.1f32)).to_cols_array()),
         )

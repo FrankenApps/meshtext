@@ -71,6 +71,59 @@ fn test_flat_glyph_lines() {
 }
 
 /// Test if the triangulation and outline generation of a single glyph (in this
+/// case the captial letter `A`) works as intended in the two-dimensional case.
+///
+/// In the font used here, the letter `A` has no curves
+/// and is only composed of straight lines.
+#[test]
+fn test_flat_glyph_lines_2d() {
+    let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");
+    let mut generator = meshtext::MeshGenerator::new(font_data);
+    let mesh: MeshText = generator
+        .generate_glyph_2d('A', Some(&glam::Mat3::IDENTITY.to_cols_array()))
+        .expect("Failed to generate text mesh for character A.");
+
+    #[rustfmt::skip]
+    let expected: Vec<f32> = vec![
+        0.342500001, 0.206666663,
+        0.153333336, 0.206666663,
+        0.134166673, 0.146666661,
+        0.342500001, 0.206666663,
+        0.134166673, 0.146666661,
+        0.361666679, 0.146666661,
+        0.153333336, 0.206666663,
+        0.204166666, 0.574166656,
+        0.0166666675, 0f32,
+        0.134166673, 0.146666661,
+        0.153333336, 0.206666663,
+        0.0166666675, 0f32,
+        0.153333336, 0.206666663,
+        0.248333335, 0.512499988,
+        0.204166666, 0.574166656,
+        0.342500001, 0.206666663,
+        0.295833319, 0.574166656,
+        0.248333335, 0.512499988,
+        0.342500001, 0.206666663,
+        0.361666679, 0.146666661,
+        0.482499987, 0f32,
+        0.295833319, 0.574166656,
+        0.342500001, 0.206666663,
+        0.482499987, 0f32,
+        0.295833319, 0.574166656,
+        0.204166666, 0.574166656,
+        0.248333335, 0.512499988,
+        0.361666679, 0.146666661,
+        0.407499999, 0f32,
+        0.482499987, 0f32,
+        0.134166673, 0.146666661,
+        0.0166666675, 0f32,
+        0.088333331, 0f32,
+    ];
+
+    assert_eq!(expected, mesh.vertices);
+}
+
+/// Test if the triangulation and outline generation of a single glyph (in this
 /// case the captial letter `Ö`) works as intended.
 ///
 /// In the font used here, the letter `Ö` is composed of quadratic bezier curves only.
