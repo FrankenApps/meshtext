@@ -7,7 +7,7 @@ pub trait TextSection<T> {
     /// Arguments:
     ///
     /// * `text`: The text section that will be transformed into a mesh.
-    /// * `flat`: Wether the mesh is flat or has an extent of `1` unit in the z-axis
+    /// * `flat`: Wether the mesh is flat or has an extent of `1` unit in the z-axis.
     /// * `transform`: The optional homogenous 4x4 transformation matrix that will be
     /// applied to each vertex of the mesh.
     ///
@@ -49,7 +49,6 @@ pub trait TextSection<T> {
     /// Arguments:
     ///
     /// * `text`: The text section that will be transformed into a mesh.
-    /// * `flat`: Wether the mesh is flat or has an extent of `1` unit in the z-axis
     /// * `transform`: The optional homogenous 4x4 transformation matrix that will be
     /// applied to each vertex of the mesh.
     ///
