@@ -10,3 +10,6 @@
 * Shrink crate size by including only a subset of glyphs in the built-in font
 * Fix function signatures
 ---
+## Version 0.2.1
+* Add a method for cleaning the internal glyph cache
+---
