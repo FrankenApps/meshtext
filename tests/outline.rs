@@ -1,6 +1,6 @@
-use meshtext::{Glyph, MeshText};
-
 mod util;
+
+use meshtext::{Glyph, MeshGenerator, MeshText};
 
 /// Use this test to plot a triangulation diagram for the specified letter.
 //#[test]
@@ -8,7 +8,7 @@ mod util;
 fn plot_glyph_vertices() {
     let character = 'A';
     let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");
-    let mut generator = meshtext::MeshGenerator::new(font_data);
+    let mut generator = MeshGenerator::new(font_data);
     let mesh: MeshText = generator
         .generate_glyph(character, true, None)
         .expect("Failed to generate text mesh for character.");
@@ -25,7 +25,7 @@ fn plot_glyph_vertices() {
 #[test]
 fn test_flat_glyph_lines() {
     let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");
-    let mut generator = meshtext::MeshGenerator::new(font_data);
+    let mut generator = MeshGenerator::new(font_data);
     let mesh: MeshText = generator
         .generate_glyph('A', true, None)
         .expect("Failed to generate text mesh for character A.");
@@ -134,7 +134,7 @@ fn test_flat_glyph_quads() {
         quad_interpolation_steps: 3,
         cubic_interpolation_steps: 3,
     };
-    let mut generator = meshtext::MeshGenerator::new_with_quality(font_data, quality);
+    let mut generator = MeshGenerator::new_with_quality(font_data, quality);
     let mesh: MeshText = generator
         .generate_glyph('Ö', true, None)
         .expect("Failed to generate text mesh for character Ö.");
