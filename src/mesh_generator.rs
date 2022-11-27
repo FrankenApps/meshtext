@@ -60,7 +60,7 @@ impl MeshGenerator {
     ///
     /// * `font`: The font that will be used for rasterizing.
     pub fn new(font: &'static [u8]) -> Self {
-        let face = Face::from_slice(font, 0).expect("Failed to generate font from data.");
+        let face = Face::parse(font, 0).expect("Failed to generate font from data.");
 
         Self {
             cache: HashMap::new(),
@@ -78,7 +78,7 @@ impl MeshGenerator {
     /// * `font`: The font that will be used for rasterizing.
     /// * `quality`: The [QualitySettings] that should be used.
     pub fn new_with_quality(font: &'static [u8], quality: QualitySettings) -> Self {
-        let face = Face::from_slice(font, 0).expect("Failed to generate font from data.");
+        let face = Face::parse(font, 0).expect("Failed to generate font from data.");
 
         Self {
             cache: HashMap::new(),
@@ -96,7 +96,7 @@ impl MeshGenerator {
     /// * `font`: The font that will be used for rasterizing.
     /// * `quality`: The [QualitySettings] that should be used.
     pub fn new_without_cache(font: &'static [u8], quality: QualitySettings) -> Self {
-        let face = Face::from_slice(font, 0).expect("Failed to generate font from data.");
+        let face = Face::parse(font, 0).expect("Failed to generate font from data.");
 
         Self {
             cache: HashMap::new(),

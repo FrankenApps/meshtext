@@ -12,17 +12,17 @@ categories = ["graphics", "game-development", "rendering"]
 
 [dependencies]
 cdt = "0.1.0"
-glam = "0.20.5"
-ttf-parser = "0.15.0"
+glam = "0.22"
+ttf-parser = "0.17"
 
 [dev-dependencies]
 criterion = { version = "0.3", features = ["html_reports"] }
-gltf-json = "0.15.2"
-gltf = "0.15.2"
-plotters = "0.3.1"
-pollster = "0.2.5"
-wgpu = "0.12.0"
-winit = "0.26.1"
+gltf-json = "1"
+gltf = "1"
+plotters = "0.3"
+pollster = "0.2"
+wgpu = "0.14"
+winit = "0.27"
 
 [[bench]]
 name = "bench_main"

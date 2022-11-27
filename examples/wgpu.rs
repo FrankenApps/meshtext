@@ -13,14 +13,14 @@ use winit::{
 };
 
 const SHADER: &'static str = r##"
-[[stage(vertex)]]
-fn vs_main([[location(0)]] position: vec2<f32>) -> [[builtin(position)]] vec4<f32> {
+@vertex
+fn vs_main(@location(0) position: vec2<f32>) -> @builtin(position) vec4<f32> {
     let scale = vec3<f32>(2.0, 2.0, 2.0);
     return vec4<f32>(position.x * scale.x - 0.5, position.y * scale.y - 0.5, 0.0, 1.0);
 }
 
-[[stage(fragment)]]
-fn fs_main() -> [[location(0)]] vec4<f32> {
+@fragment
+fn fs_main() -> @location(0) vec4<f32> {
     return vec4<f32>(0.0, 0.0, 0.0, 1.0);
 }
 "##;
@@ -51,7 +51,7 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
         .await
         .expect("Failed to create device");
 
-    let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: None,
         source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(SHADER)),
     });
@@ -62,7 +62,7 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
         push_constant_ranges: &[],
     });
 
-    let swapchain_format = surface.get_preferred_format(&adapter).unwrap();
+    let swapchain_format = surface.get_supported_formats(&adapter)[0];
 
     let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("Vertex Buffer"),
@@ -85,7 +85,7 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
         fragment: Some(wgpu::FragmentState {
             module: &shader,
             entry_point: "fs_main",
-            targets: &[swapchain_format.into()],
+            targets: &[Some(swapchain_format.into())],
         }),
         primitive: wgpu::PrimitiveState {
             topology: wgpu::PrimitiveTopology::TriangleList,
@@ -103,7 +103,8 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
         format: swapchain_format,
         width: size.width,
         height: size.height,
-        present_mode: wgpu::PresentMode::Mailbox,
+        present_mode: wgpu::PresentMode::Fifo,
+        alpha_mode: wgpu::CompositeAlphaMode::Auto,
     };
 
     surface.configure(&device, &config);
@@ -134,14 +135,14 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
                 {
                     let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                         label: None,
-                        color_attachments: &[wgpu::RenderPassColorAttachment {
+                        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                             view: &view,
                             resolve_target: None,
                             ops: wgpu::Operations {
                                 load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
                                 store: true,
                             },
-                        }],
+                        })],
                         depth_stencil_attachment: None,
                     });
                     rpass.set_vertex_buffer(0, vertex_buffer.slice(..));
