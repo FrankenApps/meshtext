@@ -107,6 +107,29 @@ impl MeshGenerator {
         }
     }
 
+    /// Removes all stored glyphs from the internal cache.
+    ///
+    /// Normally it should not be necessary to do this manually unless your program
+    /// cached so many glyphs, that memory consumption becomes an issue.
+    ///
+    /// This function does nothing if the current [MeshGenerator] does not have a cache.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use meshtext::MeshGenerator;
+    ///
+    /// let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");
+    /// let mut generator = MeshGenerator::new(font_data);
+    ///
+    /// generator.clear_cache();
+    /// ```
+    pub fn clear_cache(&mut self) {
+        if self.use_cache {
+            self.cache.clear();
+        }
+    }
+
     /// Fills the internal cache of a [MeshGenerator] with the given characters.
     ///
     /// Arguments:
