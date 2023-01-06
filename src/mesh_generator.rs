@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use glam::{Mat3, Mat4, Vec2, Vec3, Vec3A};
-use ttf_parser::{Face, GlyphId};
+use ttf_parser::GlyphId;
 
 use crate::{
     error::MeshTextError,
@@ -10,7 +10,8 @@ use crate::{
         text_mesh_from_data, text_mesh_from_data_2d, text_mesh_from_data_indexed,
         text_mesh_from_data_indexed_2d, GlyphOutlineBuilder,
     },
-    BoundingBox, CacheType, Glyph, IndexedMeshText, MeshText, QualitySettings, TextSection,
+    BoundingBox, CacheType, FontFace, Glyph, IndexedMeshText, MeshText, QualitySettings,
+    TextSection,
 };
 
 type Mesh = (Vec<Vec3A>, BoundingBox);
@@ -24,17 +25,20 @@ type IndexedMesh2D = (Vec<u32>, Vec<Vec2>, BoundingBox);
 /// Each [MeshGenerator] will handle exactly one font. This means
 /// if you need support for multiple fonts, you will need to create
 /// multiple instances (one per font) of this generator.
-pub struct MeshGenerator {
+pub struct MeshGenerator<T>
+where
+    T: FontFace,
+{
     /// Cached non-indexed glyphs are stored in this [HashMap].
     ///
     /// The key is the character itself, however because each
     /// character can have a 2D and a 3D variant, in the 3D
     /// variant each character is prefixed with an `_`.
     #[allow(unused)]
-    cache: HashMap<String, Mesh>,
+    pub(super) cache: HashMap<String, Mesh>,
 
-    /// The current [Face].
-    font: Face<'static>,
+    /// The current [FontFace].
+    pub(super) font: T,
 
     /// Cached indexed glyphs are stored in this [HashMap].
     ///
@@ -42,71 +46,345 @@ pub struct MeshGenerator {
     /// character can have a 2D and a 3D variant, in the 3D
     /// variant each character is prefixed with an `_`.
     #[allow(unused)]
-    indexed_cache: HashMap<String, IndexedMesh>,
+    pub(super) indexed_cache: HashMap<String, IndexedMesh>,
 
     /// Quality settings for generating the text meshes.
-    quality: QualitySettings,
+    pub(super) quality: QualitySettings,
 
     /// Controls wether the generator will automatically
     /// cache glyphs.
     #[allow(unused)]
-    use_cache: bool,
+    pub(super) use_cache: bool,
 }
 
-impl MeshGenerator {
-    /// Creates a new [MeshGenerator].
-    ///
-    /// Arguments:
-    ///
-    /// * `font`: The font that will be used for rasterizing.
-    pub fn new(font: &'static [u8]) -> Self {
-        let face = Face::parse(font, 0).expect("Failed to generate font from data.");
+#[cfg(not(feature = "owned"))]
+mod borrowed_mesh_generator {
+    use std::collections::HashMap;
 
-        Self {
-            cache: HashMap::new(),
-            font: face,
-            indexed_cache: HashMap::new(),
-            quality: QualitySettings::default(),
-            use_cache: true,
+    use ttf_parser::GlyphId;
+
+    use crate::{FontFace, MeshGenerator, QualitySettings};
+
+    impl FontFace for ttf_parser::Face<'_> {
+        /// Computes glyph's horizontal advance.
+        ///
+        /// This method is affected by variation axes.
+        ///
+        /// Returns:
+        ///
+        /// The horizontal advance of the glyph.
+        fn glyph_hor_advance(&self, glyph_id: GlyphId) -> Option<u16> {
+            ttf_parser::Face::glyph_hor_advance(self, glyph_id)
+        }
+
+        /// Resolves a Glyph ID for a code point.
+        ///
+        /// All subtable formats except Mixed Coverage (8) are supported.
+        ///
+        /// If you need a more low-level control, prefer `Face::tables().cmap`.
+        ///
+        /// Returns:
+        ///
+        /// The [GlyphId] or `None` when the glyph is not found.
+        fn glyph_index(&self, code_point: char) -> Option<GlyphId> {
+            ttf_parser::Face::glyph_index(self, code_point)
+        }
+
+        /// Computes the face's height.
+        ///
+        /// This method is affected by variation axes.
+        ///
+        /// Returns:
+        ///
+        /// The line height.
+        fn height(&self) -> i16 {
+            ttf_parser::Face::height(self)
+        }
+
+        /// Outlines a glyph and returns its tight bounding box.
+        ///
+        /// **Warning**: since `ttf-parser` is a pull parser,
+        /// `OutlineBuilder` will emit segments even when outline is partially malformed.
+        /// You must check `outline_glyph()` result before using
+        /// `OutlineBuilder`'s output.
+        ///
+        /// `gvar`, `glyf`, `CFF` and `CFF2` tables are supported.
+        /// And they will be accesses in this specific order.
+        ///
+        /// This method is affected by variation axes.
+        ///
+        /// Returns `None` when glyph has no outline or on error.
+        ///
+        /// # Example
+        ///
+        /// ```
+        /// use std::fmt::Write;
+        /// use ttf_parser;
+        ///
+        /// struct Builder(String);
+        ///
+        /// impl ttf_parser::OutlineBuilder for Builder {
+        ///     fn move_to(&mut self, x: f32, y: f32) {
+        ///         write!(&mut self.0, "M {} {} ", x, y).unwrap();
+        ///     }
+        ///
+        ///     fn line_to(&mut self, x: f32, y: f32) {
+        ///         write!(&mut self.0, "L {} {} ", x, y).unwrap();
+        ///     }
+        ///
+        ///     fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
+        ///         write!(&mut self.0, "Q {} {} {} {} ", x1, y1, x, y).unwrap();
+        ///     }
+        ///
+        ///     fn curve_to(&mut self, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32) {
+        ///         write!(&mut self.0, "C {} {} {} {} {} {} ", x1, y1, x2, y2, x, y).unwrap();
+        ///     }
+        ///
+        ///     fn close(&mut self) {
+        ///         write!(&mut self.0, "Z ").unwrap();
+        ///     }
+        /// }
+        ///
+        /// let data = std::fs::read("assets/font/FiraMono-Regular.ttf").unwrap();
+        /// let face = ttf_parser::Face::parse(&data, 0).unwrap();
+        /// let mut builder = Builder(String::new());
+        /// let bbox = face.outline_glyph(ttf_parser::GlyphId(36), &mut builder).unwrap();
+        /// assert_eq!(builder.0, "M 161 176 L 106 0 L 20 0 L 245 689 L 355 689 L 579 0 L 489 0 \
+        ///                        L 434 176 L 161 176 Z M 411 248 L 298 615 L 184 248 L 411 248 Z ");
+        /// assert_eq!(bbox, ttf_parser::Rect { x_min: 20, y_min: 0, x_max: 579, y_max: 689 });
+        /// ```
+        fn outline_glyph(
+            &self,
+            glyph_id: GlyphId,
+            builder: &mut dyn ttf_parser::OutlineBuilder,
+        ) -> Option<ttf_parser::Rect> {
+            ttf_parser::Face::outline_glyph(self, glyph_id, builder)
         }
     }
 
-    /// Creates a new [MeshGenerator] with custom quality settings.
-    ///
-    /// Arguments:
-    ///
-    /// * `font`: The font that will be used for rasterizing.
-    /// * `quality`: The [QualitySettings] that should be used.
-    pub fn new_with_quality(font: &'static [u8], quality: QualitySettings) -> Self {
-        let face = Face::parse(font, 0).expect("Failed to generate font from data.");
+    impl MeshGenerator<ttf_parser::Face<'_>> {
+        /// Creates a new [MeshGenerator].
+        ///
+        /// Arguments:
+        ///
+        /// * `font`: The font that will be used for rasterizing.
+        pub fn new(font: &'static [u8]) -> Self {
+            let face =
+                ttf_parser::Face::parse(font, 0).expect("Failed to generate font from data.");
 
-        Self {
-            cache: HashMap::new(),
-            font: face,
-            indexed_cache: HashMap::new(),
-            quality,
-            use_cache: true,
+            Self {
+                cache: HashMap::new(),
+                font: face,
+                indexed_cache: HashMap::new(),
+                quality: QualitySettings::default(),
+                use_cache: true,
+            }
+        }
+
+        /// Creates a new [MeshGenerator] with custom quality settings.
+        ///
+        /// Arguments:
+        ///
+        /// * `font`: The font that will be used for rasterizing.
+        /// * `quality`: The [QualitySettings] that should be used.
+        pub fn new_with_quality(font: &'static [u8], quality: QualitySettings) -> Self {
+            let face =
+                ttf_parser::Face::parse(font, 0).expect("Failed to generate font from data.");
+
+            Self {
+                cache: HashMap::new(),
+                font: face,
+                indexed_cache: HashMap::new(),
+                quality,
+                use_cache: true,
+            }
+        }
+
+        /// Creates a new [MeshGenerator] with custom quality settings and no caching.
+        ///
+        /// Arguments:
+        ///
+        /// * `font`: The font that will be used for rasterizing.
+        /// * `quality`: The [QualitySettings] that should be used.
+        pub fn new_without_cache(font: &'static [u8], quality: QualitySettings) -> Self {
+            let face =
+                ttf_parser::Face::parse(font, 0).expect("Failed to generate font from data.");
+
+            Self {
+                cache: HashMap::new(),
+                font: face,
+                indexed_cache: HashMap::new(),
+                quality,
+                use_cache: false,
+            }
+        }
+    }
+}
+
+#[cfg(feature = "owned")]
+mod owned_mesh_generator {
+    use crate::{FontFace, MeshGenerator, QualitySettings};
+    use std::collections::HashMap;
+
+    use owned_ttf_parser::{AsFaceRef, OwnedFace};
+
+    impl FontFace for OwnedFace {
+        /// Computes glyph's horizontal advance.
+        ///
+        /// This method is affected by variation axes.
+        ///
+        /// Returns:
+        ///
+        /// The horizontal advance of the glyph.
+        fn glyph_hor_advance(&self, glyph_id: owned_ttf_parser::GlyphId) -> Option<u16> {
+            self.as_face_ref().glyph_hor_advance(glyph_id)
+        }
+
+        /// Resolves a Glyph ID for a code point.
+        ///
+        /// All subtable formats except Mixed Coverage (8) are supported.
+        ///
+        /// If you need a more low-level control, prefer `Face::tables().cmap`.
+        ///
+        /// Returns:
+        ///
+        /// The [GlyphId] or `None` when the glyph is not found.
+        fn glyph_index(&self, code_point: char) -> Option<owned_ttf_parser::GlyphId> {
+            self.as_face_ref().glyph_index(code_point)
+        }
+
+        /// Computes the face's height.
+        ///
+        /// This method is affected by variation axes.
+        ///
+        /// Returns:
+        ///
+        /// The line height.
+        fn height(&self) -> i16 {
+            self.as_face_ref().height()
+        }
+
+        /// Outlines a glyph and returns its tight bounding box.
+        ///
+        /// **Warning**: since `ttf-parser` is a pull parser,
+        /// `OutlineBuilder` will emit segments even when outline is partially malformed.
+        /// You must check `outline_glyph()` result before using
+        /// `OutlineBuilder`'s output.
+        ///
+        /// `gvar`, `glyf`, `CFF` and `CFF2` tables are supported.
+        /// And they will be accesses in this specific order.
+        ///
+        /// This method is affected by variation axes.
+        ///
+        /// Returns `None` when glyph has no outline or on error.
+        ///
+        /// # Example
+        ///
+        /// ```
+        /// use std::fmt::Write;
+        /// use ttf_parser;
+        ///
+        /// struct Builder(String);
+        ///
+        /// impl ttf_parser::OutlineBuilder for Builder {
+        ///     fn move_to(&mut self, x: f32, y: f32) {
+        ///         write!(&mut self.0, "M {} {} ", x, y).unwrap();
+        ///     }
+        ///
+        ///     fn line_to(&mut self, x: f32, y: f32) {
+        ///         write!(&mut self.0, "L {} {} ", x, y).unwrap();
+        ///     }
+        ///
+        ///     fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
+        ///         write!(&mut self.0, "Q {} {} {} {} ", x1, y1, x, y).unwrap();
+        ///     }
+        ///
+        ///     fn curve_to(&mut self, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32) {
+        ///         write!(&mut self.0, "C {} {} {} {} {} {} ", x1, y1, x2, y2, x, y).unwrap();
+        ///     }
+        ///
+        ///     fn close(&mut self) {
+        ///         write!(&mut self.0, "Z ").unwrap();
+        ///     }
+        /// }
+        ///
+        /// let data = std::fs::read("assets/font/FiraMono-Regular.ttf").unwrap();
+        /// let face = ttf_parser::Face::parse(&data, 0).unwrap();
+        /// let mut builder = Builder(String::new());
+        /// let bbox = face.outline_glyph(ttf_parser::GlyphId(36), &mut builder).unwrap();
+        /// assert_eq!(builder.0, "M 161 176 L 106 0 L 20 0 L 245 689 L 355 689 L 579 0 L 489 0 \
+        ///                        L 434 176 L 161 176 Z M 411 248 L 298 615 L 184 248 L 411 248 Z ");
+        /// assert_eq!(bbox, ttf_parser::Rect { x_min: 20, y_min: 0, x_max: 579, y_max: 689 });
+        /// ```
+        fn outline_glyph(
+            &self,
+            glyph_id: owned_ttf_parser::GlyphId,
+            builder: &mut dyn owned_ttf_parser::OutlineBuilder,
+        ) -> Option<owned_ttf_parser::Rect> {
+            self.as_face_ref().outline_glyph(glyph_id, builder)
         }
     }
 
-    /// Creates a new [MeshGenerator] with custom quality settings and no caching.
-    ///
-    /// Arguments:
-    ///
-    /// * `font`: The font that will be used for rasterizing.
-    /// * `quality`: The [QualitySettings] that should be used.
-    pub fn new_without_cache(font: &'static [u8], quality: QualitySettings) -> Self {
-        let face = Face::parse(font, 0).expect("Failed to generate font from data.");
+    impl MeshGenerator<OwnedFace> {
+        /// Creates a new [MeshGenerator].
+        ///
+        /// Arguments:
+        ///
+        /// * `font`: The font that will be used for rasterizing.
+        pub fn new(font: Vec<u8>) -> Self {
+            let face = OwnedFace::from_vec(font, 0).expect("Failed to generate font from data.");
 
-        Self {
-            cache: HashMap::new(),
-            font: face,
-            indexed_cache: HashMap::new(),
-            quality,
-            use_cache: false,
+            Self {
+                cache: HashMap::new(),
+                font: face,
+                indexed_cache: HashMap::new(),
+                quality: QualitySettings::default(),
+                use_cache: true,
+            }
+        }
+
+        /// Creates a new [MeshGenerator] with custom quality settings.
+        ///
+        /// Arguments:
+        ///
+        /// * `font`: The font that will be used for rasterizing.
+        /// * `quality`: The [QualitySettings] that should be used.
+        pub fn new_with_quality(font: Vec<u8>, quality: QualitySettings) -> Self {
+            let face = OwnedFace::from_vec(font, 0).expect("Failed to generate font from data.");
+
+            Self {
+                cache: HashMap::new(),
+                font: face,
+                indexed_cache: HashMap::new(),
+                quality,
+                use_cache: true,
+            }
+        }
+
+        /// Creates a new [MeshGenerator] with custom quality settings and no caching.
+        ///
+        /// Arguments:
+        ///
+        /// * `font`: The font that will be used for rasterizing.
+        /// * `quality`: The [QualitySettings] that should be used.
+        pub fn new_without_cache(font: Vec<u8>, quality: QualitySettings) -> Self {
+            let face = OwnedFace::from_vec(font, 0).expect("Failed to generate font from data.");
+
+            Self {
+                cache: HashMap::new(),
+                font: face,
+                indexed_cache: HashMap::new(),
+                quality,
+                use_cache: false,
+            }
         }
     }
+}
 
+impl<T> MeshGenerator<T>
+where
+    T: FontFace,
+{
     /// Removes all stored glyphs from the internal cache.
     ///
     /// Normally it should not be necessary to do this manually unless your program
@@ -1002,7 +1280,10 @@ impl MeshGenerator {
     }
 }
 
-impl TextSection<MeshText> for MeshGenerator {
+impl<T> TextSection<MeshText> for MeshGenerator<T>
+where
+    T: FontFace,
+{
     fn generate_section(
         &mut self,
         text: &str,
@@ -1021,7 +1302,10 @@ impl TextSection<MeshText> for MeshGenerator {
     }
 }
 
-impl TextSection<IndexedMeshText> for MeshGenerator {
+impl<T> TextSection<IndexedMeshText> for MeshGenerator<T>
+where
+    T: FontFace,
+{
     fn generate_section(
         &mut self,
         text: &str,
@@ -1040,7 +1324,10 @@ impl TextSection<IndexedMeshText> for MeshGenerator {
     }
 }
 
-impl Glyph<MeshText> for MeshGenerator {
+impl<T> Glyph<MeshText> for MeshGenerator<T>
+where
+    T: FontFace,
+{
     fn generate_glyph(
         &mut self,
         glyph: char,
@@ -1059,7 +1346,10 @@ impl Glyph<MeshText> for MeshGenerator {
     }
 }
 
-impl Glyph<IndexedMeshText> for MeshGenerator {
+impl<T> Glyph<IndexedMeshText> for MeshGenerator<T>
+where
+    T: FontFace,
+{
     fn generate_glyph(
         &mut self,
         glyph: char,

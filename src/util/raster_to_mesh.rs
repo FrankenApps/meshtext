@@ -83,7 +83,7 @@ pub(crate) fn raster_to_mesh_indexed(
     if flat {
         let mut vertices = Vec::new();
         for p in points {
-            vertices.push(Vec3A::new(p.0 as f32, p.1 as f32, 0f32));
+            vertices.push(Vec3A::new(p.0, p.1, 0f32));
         }
 
         let mut indices = Vec::new();
@@ -97,12 +97,12 @@ pub(crate) fn raster_to_mesh_indexed(
     } else {
         let mut vertices = Vec::new();
         for p in points {
-            vertices.push(Vec3A::new(p.0 as f32, p.1 as f32, 0.5f32));
+            vertices.push(Vec3A::new(p.0, p.1, 0.5f32));
         }
         let flat_count = vertices.len() as u32;
 
         for p in points {
-            vertices.push(Vec3A::new(p.0 as f32, p.1 as f32, -0.5f32));
+            vertices.push(Vec3A::new(p.0, p.1, -0.5f32));
         }
 
         let mut indices = Vec::new();

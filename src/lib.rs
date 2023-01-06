@@ -40,6 +40,9 @@ mod types {
     pub use quality_settings::QualitySettings;
 
     mod traits {
+        mod font_face;
+        pub(crate) use font_face::*;
+
         mod glyph;
         pub use glyph::*;
 
