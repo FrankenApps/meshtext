@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.2.2
+## Version 0.3.0
 * Add `owned` feature using [`owned_ttf_parser`](https://crates.io/crates/owned_ttf_parser) for _more flexibility_ when loading fonts
 ---
 ## Version 0.2.1
