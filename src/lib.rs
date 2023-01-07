@@ -17,6 +17,12 @@
 /// while using this crate.
 pub mod error;
 
+// Re-export the faces.
+#[cfg(not(feature = "owned"))]
+pub use ttf_parser::Face;
+#[cfg(feature = "owned")]
+pub use owned_ttf_parser::OwnedFace;
+
 mod mesh_generator;
 pub use mesh_generator::MeshGenerator;
 
