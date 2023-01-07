@@ -4,7 +4,7 @@
 
 Meshtext is a font triangulation tool for 3D scenes.
 
-⚠️ Versions <= `0.2` of this crate focus on correctness and less on speed. ⚠️
+⚠️ Versions <= `0.3` of this crate focus on correctness and less on speed. ⚠️
 
 The idea is to have a feature complete Proof-of-Concept first and then start optimizing.
 
