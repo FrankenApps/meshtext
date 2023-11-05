@@ -27,8 +27,17 @@ fn fs_main() -> @location(0) vec4<f32> {
 
 async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vertex_count: u32) {
     let size = window.inner_size();
-    let instance = wgpu::Instance::new(wgpu::Backends::all());
-    let surface = unsafe { instance.create_surface(&window) };
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: wgpu::Backends::all(),
+        dx12_shader_compiler: wgpu::Dx12Compiler::Fxc,
+        flags: wgpu::InstanceFlags::default(),
+        gles_minor_version: wgpu::Gles3MinorVersion::Automatic,
+    });
+    let surface = unsafe {
+        instance
+            .create_surface(&window)
+            .expect("Failed to create surface.")
+    };
     let adapter = instance
         .request_adapter(&wgpu::RequestAdapterOptions {
             power_preference: wgpu::PowerPreference::default(),
@@ -62,7 +71,11 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
         push_constant_ranges: &[],
     });
 
-    let swapchain_format = surface.get_supported_formats(&adapter)[0];
+    let capabilities = surface.get_capabilities(&adapter);
+    let swapchain_format = *capabilities
+        .formats
+        .first()
+        .expect("Surface does not support any texture format.");
 
     let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("Vertex Buffer"),
@@ -99,12 +112,13 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
     });
 
     let mut config = wgpu::SurfaceConfiguration {
-        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        alpha_mode: wgpu::CompositeAlphaMode::Auto,
         format: swapchain_format,
-        width: size.width,
         height: size.height,
         present_mode: wgpu::PresentMode::Fifo,
-        alpha_mode: wgpu::CompositeAlphaMode::Auto,
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        view_formats: vec![],
+        width: size.width,
     };
 
     surface.configure(&device, &config);
@@ -140,10 +154,12 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
                             resolve_target: None,
                             ops: wgpu::Operations {
                                 load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
-                                store: true,
+                                store: wgpu::StoreOp::Store,
                             },
                         })],
                         depth_stencil_attachment: None,
+                        occlusion_query_set: None,
+                        timestamp_writes: None,
                     });
                     rpass.set_vertex_buffer(0, vertex_buffer.slice(..));
                     rpass.set_pipeline(&render_pipeline);

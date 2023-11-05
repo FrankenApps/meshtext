@@ -7,27 +7,27 @@ description = "Generate vertex-vertex meshes from text."
 readme = "README.md"
 repository = "https://github.com/FrankenApps/meshtext"
 license = "MIT OR Apache-2.0"
-keywords = ["graphics", "gamedev", "delauny", "render", "triangulation"]
+keywords = ["graphics", "gamedev", "delaunay", "render", "triangulation"]
 categories = ["graphics", "game-development", "rendering"]
 
 [dependencies]
 cdt = "0.1.0"
-glam = "0.22"
-owned_ttf_parser = { version = "0.18", optional = true }
-ttf-parser = "0.18"
+glam = "0.24.2"
+owned_ttf_parser = { version = "0.20.0", optional = true }
+ttf-parser = "0.20.0"
 
 [features]
 default = []
 owned = ["dep:owned_ttf_parser"]
 
 [dev-dependencies]
-criterion = { version = "0.3", features = ["html_reports"] }
+criterion = { version = "0.5", features = ["html_reports"] }
 gltf-json = "1"
 gltf = "1"
 plotters = "0.3"
-pollster = "0.2"
-wgpu = "0.14"
-winit = "0.27"
+pollster = "0.3"
+wgpu = "0.18"
+winit = "0.28"
 
 [[bench]]
 name = "bench_main"
