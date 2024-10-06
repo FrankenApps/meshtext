@@ -12,9 +12,9 @@ categories = ["graphics", "game-development", "rendering"]
 
 [dependencies]
 cdt = "0.1.0"
-glam = "0.24.2"
-owned_ttf_parser = { version = "0.20.0", optional = true }
-ttf-parser = "0.20.0"
+glam = "0.29"
+owned_ttf_parser = { version = "0.25", optional = true }
+ttf-parser = "0.25"
 
 [features]
 default = []
