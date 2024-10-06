@@ -7,7 +7,7 @@ pub trait TriangleMesh {
     fn bbox(&self) -> BoundingBox;
 
     /// Gets the optional indices of this mesh.
-    /// 
+    ///
     /// The returned value will be [None], if this mesh is not indexed.
     fn indices(&self) -> Option<Vec<u32>>;
 

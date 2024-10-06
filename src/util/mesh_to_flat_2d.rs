@@ -61,7 +61,7 @@ pub(crate) fn mesh_to_indexed_flat_2d(mesh_3d: IndexedMesh) -> IndexedMesh2D {
 /// Arguments:
 ///
 /// * `bbox`: The original [BoundingBox] which might have an extent in
-/// the z-direction.
+///   the z-direction.
 ///
 /// Returns:
 ///

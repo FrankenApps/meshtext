@@ -9,7 +9,7 @@ pub trait Glyph<T> {
     /// * `glyph`: The character that will be transformed into a mesh.
     /// * `flat`: Wether the mesh is flat or has an extent of `1` unit in the z-axis.
     /// * `transform`: The optional homogenous 4x4 transformation matrix that will be
-    /// applied to each vertex of the mesh.
+    ///   applied to each vertex of the mesh.
     ///
     /// Returns:
     ///
@@ -39,7 +39,7 @@ pub trait Glyph<T> {
     ///
     /// * `glyph`: The character that will be transformed into a mesh.
     /// * `transform`: The optional homogenous 3x3 transformation matrix that will be
-    /// applied to each vertex of the mesh.
+    ///   applied to each vertex of the mesh.
     ///
     /// Returns:
     ///

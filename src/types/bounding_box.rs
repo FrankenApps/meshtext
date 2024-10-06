@@ -56,7 +56,7 @@ impl BoundingBox {
     /// Returns:
     ///
     /// The new [BoundingBox] or a [MeshTextError] if the operation failed.
-    pub(crate) fn from_vertices(vertices: &Vec<f32>) -> Result<Self, Box<dyn MeshTextError>> {
+    pub(crate) fn from_vertices(vertices: &[f32]) -> Result<Self, Box<dyn MeshTextError>> {
         let component_count = vertices.len();
 
         // There must be at least one vertex present to form a bounding box that is not empty.
@@ -111,7 +111,7 @@ impl BoundingBox {
     /// Arguments:
     ///
     /// * `other`: The [BoundingBox] with which this bounding box will
-    /// be combined.
+    ///   be combined.
     ///
     /// Returns:
     ///

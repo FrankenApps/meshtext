@@ -6,9 +6,9 @@
 //! [vertex-vertex mesh](https://en.wikipedia.org/wiki/Polygon_mesh#Vertex-vertex_meshes).
 //!
 //! - Supports [TrueType](https://docs.microsoft.com/en-us/typography/truetype/),
-//! [OpenType](https://docs.microsoft.com/en-us/typography/opentype/spec/)
-//! and [AAT](https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6AATIntro.html)
-//! fonts
+//!   [OpenType](https://docs.microsoft.com/en-us/typography/opentype/spec/)
+//!   and [AAT](https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6AATIntro.html)
+//!   fonts
 //! - Handles caching of characters that were already triangulated
 //! - Allows transforming text sections
 //! - Fully customizable to easily integrate in your rendering pipeline
@@ -18,10 +18,10 @@
 pub mod error;
 
 // Re-export the faces.
-#[cfg(not(feature = "owned"))]
-pub use ttf_parser::Face;
 #[cfg(feature = "owned")]
 pub use owned_ttf_parser::OwnedFace;
+#[cfg(not(feature = "owned"))]
+pub use ttf_parser::Face;
 
 mod mesh_generator;
 pub use mesh_generator::MeshGenerator;

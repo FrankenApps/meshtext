@@ -1,15 +1,10 @@
 /// Allows referencing one of the internal caches.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub enum CacheType {
-    /// The caache that handles non-indexed meshes.
+    /// The cache that handles non-indexed meshes.
+    #[default]
     Normal,
 
     /// The cache that handles indexed meshes.
     Indexed,
-}
-
-impl Default for CacheType {
-    fn default() -> Self {
-        CacheType::Normal
-    }
 }

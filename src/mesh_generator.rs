@@ -421,10 +421,10 @@ where
     /// * `flat`: Wether the flat or three-dimensional variant of the characters should be preloaded.
     ///   When set to `true` two coordinates per vertex must be specified in the `mesh`, otherwise three.
     /// * `mesh`: The mesh that should be used for rendering the given `glyph`.
-    /// 
+    ///
     /// Note: For optimal results, make sure that all vertices of the `mesh` have coordinates in the range `0..1`.
     /// This ensures that the font size will be consistent with that of the generated glyphs.
-    /// 
+    ///
     /// Returns:
     ///
     /// A [Result] indicating if the operation was successful.
@@ -442,7 +442,7 @@ where
     ///     0.25, 0.57,
     ///     0f32, 0f32];
     /// let triangle_mesh = MeshText::new(triangle).unwrap();
-    /// 
+    ///
     /// // Substitue the uppercase letter 'A' with a triangle for non-indexed flat meshes.
     /// generator.precache_custom_glyph('A', true, &triangle_mesh).unwrap();
     /// ```
@@ -471,18 +471,16 @@ where
                     (indices, glam_vecs_from_raw(mesh.vertices()), mesh.bbox()),
                 );
             }
+        } else if flat {
+            self.cache.insert(
+                glyph.to_string(),
+                (glam_3d_vecs_from_raw_2d(mesh.vertices()), mesh.bbox()),
+            );
         } else {
-            if flat {
-                self.cache.insert(
-                    glyph.to_string(),
-                    (glam_3d_vecs_from_raw_2d(mesh.vertices()), mesh.bbox()),
-                );
-            } else {
-                self.cache.insert(
-                    format!("_{}", glyph),
-                    (glam_vecs_from_raw(mesh.vertices()), mesh.bbox()),
-                );
-            }
+            self.cache.insert(
+                format!("_{}", glyph),
+                (glam_vecs_from_raw(mesh.vertices()), mesh.bbox()),
+            );
         }
 
         Ok(())
@@ -494,8 +492,8 @@ where
     ///
     /// * `glyphs`: The glyphs that will be precached. Each character should appear exactly once.
     /// * `flat`: Wether the flat or three-dimensional variant of the characters should be preloaded.
-    /// If both variants should be precached this function must be called twice with this parameter set
-    /// to `true` and `false`.
+    ///   If both variants should be precached this function must be called twice with this parameter set
+    ///   to `true` and `false`.
     /// * `cache`: An optional value that controls which cache will be filled. [None] means both caches will be filled.
     ///
     /// Returns:
@@ -554,9 +552,9 @@ where
     ///
     /// * `glyph`: The character that should be converted to a mesh.
     /// * `flat`: Set this to `true` for 2D meshes, or to `false` in order
-    /// to generate a mesh with a depth of `1.0` units.
+    ///   to generate a mesh with a depth of `1.0` units.
     /// * `transform`: The 4x4 homogenous transformation matrix in column
-    /// major order that will be applied to this text.
+    ///   major order that will be applied to this text.
     ///
     /// Returns:
     ///
@@ -588,7 +586,7 @@ where
     ///
     /// * `glyph`: The character that should be converted to a mesh.
     /// * `transform`: The 3x3 homogenous transformation matrix in column
-    /// major order that will be applied to this text.
+    ///   major order that will be applied to this text.
     ///
     /// Returns:
     ///
@@ -622,9 +620,9 @@ where
     ///
     /// * `glyph`: The character that should be converted to a mesh.
     /// * `flat`: Set this to `true` for 2D meshes, or to `false` in order
-    /// to generate a mesh with a depth of `1.0` units.
+    ///   to generate a mesh with a depth of `1.0` units.
     /// * `transform`: The 4x4 homogenous transformation matrix in column
-    /// major order that will be applied to this text.
+    ///   major order that will be applied to this text.
     ///
     /// Returns:
     ///
@@ -659,7 +657,7 @@ where
     ///
     /// * `glyph`: The character that should be converted to a mesh.
     /// * `transform`: The 3x3 homogenous transformation matrix in column
-    /// major order that will be applied to this text.
+    ///   major order that will be applied to this text.
     ///
     /// Returns:
     ///
@@ -692,7 +690,7 @@ where
     ///
     /// * `glyph`: The character that should be converted to a mesh.
     /// * `flat`: Set this to `true` for 2D meshes, or to `false` in order
-    /// to generate a mesh with a depth of `1.0` units.
+    ///   to generate a mesh with a depth of `1.0` units.
     /// * `transform`: The 4x4 homogenous transformation matrix.
     ///
     /// Returns:
@@ -752,7 +750,7 @@ where
     ///
     /// * `glyph`: The character that should be converted to a mesh.
     /// * `flat`: Set this to `true` for 2D meshes, or to `false` in order
-    /// to generate a mesh with a depth of `1.0` units.
+    ///   to generate a mesh with a depth of `1.0` units.
     /// * `transform`: The 4x4 homogenous transformation matrix.
     ///
     /// Returns:
@@ -811,9 +809,9 @@ where
     ///
     /// * `text`: The text that should be converted to a mesh.
     /// * `flat`: Set this to `true` for 2D meshes, or to `false` in order
-    /// to generate a mesh with a depth of `1.0` units.
+    ///   to generate a mesh with a depth of `1.0` units.
     /// * `transform`: The optional 4x4 homogenous transformation matrix in column
-    /// major order that will be applied to this text.
+    ///   major order that will be applied to this text.
     ///
     /// Returns:
     ///
@@ -883,7 +881,7 @@ where
     ///
     /// * `text`: The text that should be converted to a mesh.
     /// * `transform`: The optional 3x3 homogenous transformation matrix in column
-    /// major order that will be applied to this text.
+    ///   major order that will be applied to this text.
     ///
     /// Returns:
     ///
@@ -953,9 +951,9 @@ where
     ///
     /// * `text`: The text that should be converted to a mesh.
     /// * `flat`: Set this to `true` for 2D meshes, or to `false` in order
-    /// to generate a mesh with a depth of `1.0` units.
+    ///   to generate a mesh with a depth of `1.0` units.
     /// * `transform`: The optional 4x4 homogenous transformation matrix in column
-    /// major order that will be applied to this text.
+    ///   major order that will be applied to this text.
     ///
     /// Returns:
     ///
@@ -1045,7 +1043,7 @@ where
     ///
     /// * `text`: The text that should be converted to a mesh.
     /// * `transform`: The optional 3x3 homogenous transformation matrix in column
-    /// major order that will be applied to this text.
+    ///   major order that will be applied to this text.
     ///
     /// Returns:
     ///

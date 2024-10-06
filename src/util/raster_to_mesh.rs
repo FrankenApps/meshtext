@@ -16,7 +16,7 @@ type TriangleIndices = (usize, usize, usize);
 ///
 /// * `outline`: The outline of the desired glyph.
 /// * `flat`: Generates a two dimensional mesh if `true`, otherwise
-/// a three dimensional mesh with depth `1.0` units is generated.
+///   a three dimensional mesh with depth `1.0` units is generated.
 ///
 /// Returns:
 ///
@@ -66,7 +66,7 @@ pub(crate) fn raster_to_mesh(
 ///
 /// * `outline`: The outline of the desired glyph.
 /// * `flat`: Generates a two dimensional mesh if `true`, otherwise
-/// a three dimensional mesh with depth `1.0` units is generated.
+///   a three dimensional mesh with depth `1.0` units is generated.
 ///
 /// Returns:
 ///
