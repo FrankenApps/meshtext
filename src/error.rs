@@ -33,3 +33,20 @@ impl fmt::Display for GlyphTriangulationError {
         write!(f, "The glyph outline could not be triangulated.")
     }
 }
+
+/// An error related to malformed vertices.
+#[derive(Debug)]
+pub struct VertexError;
+
+impl MeshTextError for VertexError {}
+
+impl Error for VertexError {}
+
+impl fmt::Display for VertexError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "The given vertex or vertices seem to be malformed."
+        )
+    }
+}

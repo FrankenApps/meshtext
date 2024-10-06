@@ -1,5 +1,7 @@
 use glam::{Mat4, Vec3A};
 
+use crate::error::{MeshTextError, VertexError};
+
 /// A bounding box or bounding rectangle in the case of
 /// a flat mesh.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -42,6 +44,41 @@ impl BoundingBox {
             max: Vec3A::ZERO,
             min: Vec3A::ZERO,
         }
+    }
+
+    /// Creates a new [BoundingBox] enclosing the given `vertices`.
+    ///
+    /// Arguments:
+    ///
+    /// * `vertices`: The vertices forming a mesh around which the bounding box
+    ///   is constructed.
+    ///
+    /// Returns:
+    ///
+    /// The new [BoundingBox] or a [MeshTextError] if the operation failed.
+    pub(crate) fn from_vertices(vertices: &Vec<f32>) -> Result<Self, Box<dyn MeshTextError>> {
+        let component_count = vertices.len();
+
+        // There must be at least one vertex present to form a bounding box that is not empty.
+        if component_count < 3 {
+            return Ok(BoundingBox::empty());
+        }
+
+        if component_count % 3 != 0 {
+            return Err(Box::new(VertexError));
+        }
+
+        let origin = Vec3A::new(vertices[0], vertices[1], vertices[2]);
+        let mut bbox = BoundingBox::new(origin, origin);
+        for vertex in vertices
+            .chunks_exact(3)
+            .map(|v| Vec3A::new(v[0], v[1], v[2]))
+        {
+            bbox.max = bbox.max.max(vertex);
+            bbox.min = bbox.min.min(vertex);
+        }
+
+        Ok(bbox)
     }
 
     /// Calculates the center of this [BoundingBox].

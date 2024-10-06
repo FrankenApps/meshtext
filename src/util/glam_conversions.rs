@@ -1,5 +1,25 @@
 use glam::{Vec2, Vec3A};
 
+pub(crate) fn glam_vecs_from_raw(raw: Vec<f32>) -> Vec<Vec3A> {
+    let mut glam_vecs = Vec::new();
+
+    for components in raw.chunks(3) {
+        glam_vecs.push(Vec3A::new(components[0], components[1], components[2]));
+    }
+
+    glam_vecs
+}
+
+pub(crate) fn glam_3d_vecs_from_raw_2d(raw: Vec<f32>) -> Vec<Vec3A> {
+    let mut glam_vecs = Vec::new();
+
+    for components in raw.chunks(2) {
+        glam_vecs.push(Vec3A::new(components[0], components[1], 0f32));
+    }
+
+    glam_vecs
+}
+
 /// Converts a [Vec] of [Vec3A]s to a [Vec] of [f32].
 ///
 /// Arguments:

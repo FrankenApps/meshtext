@@ -6,12 +6,12 @@ use ttf_parser::GlyphId;
 use crate::{
     error::MeshTextError,
     util::{
-        mesh_to_flat_2d, mesh_to_indexed_flat_2d, raster_to_mesh, raster_to_mesh_indexed,
-        text_mesh_from_data, text_mesh_from_data_2d, text_mesh_from_data_indexed,
-        text_mesh_from_data_indexed_2d, GlyphOutlineBuilder,
+        glam_3d_vecs_from_raw_2d, glam_vecs_from_raw, mesh_to_flat_2d, mesh_to_indexed_flat_2d,
+        raster_to_mesh, raster_to_mesh_indexed, text_mesh_from_data, text_mesh_from_data_2d,
+        text_mesh_from_data_indexed, text_mesh_from_data_indexed_2d, GlyphOutlineBuilder,
     },
     BoundingBox, CacheType, FontFace, Glyph, IndexedMeshText, MeshText, QualitySettings,
-    TextSection,
+    TextSection, TriangleMesh,
 };
 
 type Mesh = (Vec<Vec3A>, BoundingBox);
@@ -408,6 +408,86 @@ where
         }
     }
 
+    /// Allows inserting a custom mesh into the internal cache that will be used for rendering
+    /// the given `glyph`.
+    ///
+    /// Please note that this will not work if [MeshGenerator::new_without_cache] was used to
+    /// construct this [MeshGenerator].
+    ///
+    /// Arguments:
+    ///
+    /// * `glyph`: The glyph that will be precached. If the given glyph is already present in the
+    ///   cache, it will be overwritten.
+    /// * `flat`: Wether the flat or three-dimensional variant of the characters should be preloaded.
+    ///   When set to `true` two coordinates per vertex must be specified in the `mesh`, otherwise three.
+    /// * `mesh`: The mesh that should be used for rendering the given `glyph`.
+    /// 
+    /// Note: For optimal results, make sure that all vertices of the `mesh` have coordinates in the range `0..1`.
+    /// This ensures that the font size will be consistent with that of the generated glyphs.
+    /// 
+    /// Returns:
+    ///
+    /// A [Result] indicating if the operation was successful.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use meshtext::{MeshGenerator, MeshText};
+    ///
+    /// let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");
+    /// let mut generator = MeshGenerator::new(font_data);
+    ///
+    /// let triangle: Vec<f32> = vec![
+    ///     0.50, 0f32,
+    ///     0.25, 0.57,
+    ///     0f32, 0f32];
+    /// let triangle_mesh = MeshText::new(triangle).unwrap();
+    /// 
+    /// // Substitue the uppercase letter 'A' with a triangle for non-indexed flat meshes.
+    /// generator.precache_custom_glyph('A', true, &triangle_mesh).unwrap();
+    /// ```
+    pub fn precache_custom_glyph<M>(
+        &mut self,
+        glyph: char,
+        flat: bool,
+        mesh: &M,
+    ) -> Result<(), Box<dyn MeshTextError>>
+    where
+        M: TriangleMesh,
+    {
+        if let Some(indices) = mesh.indices() {
+            if flat {
+                self.indexed_cache.insert(
+                    glyph.to_string(),
+                    (
+                        indices,
+                        glam_3d_vecs_from_raw_2d(mesh.vertices()),
+                        mesh.bbox(),
+                    ),
+                );
+            } else {
+                self.indexed_cache.insert(
+                    format!("_{}", glyph),
+                    (indices, glam_vecs_from_raw(mesh.vertices()), mesh.bbox()),
+                );
+            }
+        } else {
+            if flat {
+                self.cache.insert(
+                    glyph.to_string(),
+                    (glam_3d_vecs_from_raw_2d(mesh.vertices()), mesh.bbox()),
+                );
+            } else {
+                self.cache.insert(
+                    format!("_{}", glyph),
+                    (glam_vecs_from_raw(mesh.vertices()), mesh.bbox()),
+                );
+            }
+        }
+
+        Ok(())
+    }
+
     /// Fills the internal cache of a [MeshGenerator] with the given characters.
     ///
     /// Arguments:
@@ -416,7 +496,7 @@ where
     /// * `flat`: Wether the flat or three-dimensional variant of the characters should be preloaded.
     /// If both variants should be precached this function must be called twice with this parameter set
     /// to `true` and `false`.
-    /// * `cache`: An optional value that controls which cache will be filled. `None` means both caches will be filled.
+    /// * `cache`: An optional value that controls which cache will be filled. [None] means both caches will be filled.
     ///
     /// Returns:
     ///

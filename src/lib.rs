@@ -52,6 +52,9 @@ mod types {
         mod glyph;
         pub use glyph::*;
 
+        mod triangle_mesh;
+        pub use triangle_mesh::*;
+
         mod text_section;
         pub use text_section::*;
     }
