@@ -25,9 +25,9 @@ criterion = { version = "0.5", features = ["html_reports"] }
 gltf-json = "1"
 gltf = "1"
 plotters = "0.3"
-pollster = "0.3"
-wgpu = "0.18"
-winit = "0.28"
+pollster = "0.4"
+wgpu = "23"
+winit = "0.30"
 
 [[bench]]
 name = "bench_main"

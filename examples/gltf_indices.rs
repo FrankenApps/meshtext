@@ -4,7 +4,7 @@
 ///
 use std::{fs, mem};
 
-use gltf_json::validation::Checked::Valid;
+use gltf_json::validation::{Checked::Valid, USize64};
 use meshtext::{BoundingBox, IndexedMeshText, MeshGenerator, TextSection};
 use std::borrow::Cow;
 use std::io::Write;
@@ -40,8 +40,8 @@ fn to_padded_byte_vector<T>(vec: Vec<T>) -> Vec<u8> {
 }
 
 fn export(
-    vertex_data: &Vec<f32>,
-    index_data: &Vec<u32>,
+    vertex_data: &[f32],
+    index_data: &[u32],
     bbox: &BoundingBox,
     color: [f32; 3],
     output: Output,
@@ -52,13 +52,13 @@ fn export(
         if i % 3 == 2 {
             vertices.push(Vertex {
                 position: [vertex_data[i - 2], vertex_data[i - 1], vertex_data[i]],
-                color: color,
+                color,
             });
         }
     }
 
     let vertex_buffer_length = (vertices.len() * mem::size_of::<Vertex>()
-        + index_data.len() * mem::size_of::<u32>()) as u32;
+        + mem::size_of_val(index_data)).into();
     let vertex_buffer = gltf_json::Buffer {
         byte_length: vertex_buffer_length,
         extensions: Default::default(),
@@ -73,8 +73,8 @@ fn export(
     let vertex_buffer_view = gltf_json::buffer::View {
         buffer: gltf_json::Index::new(0),
         byte_length: vertex_buffer.byte_length,
-        byte_offset: Some(0),
-        byte_stride: Some(mem::size_of::<Vertex>() as u32),
+        byte_offset: Some(USize64::from(0usize)),
+        byte_stride: Some(gltf_json::buffer::Stride(mem::size_of::<Vertex>())),
         extensions: Default::default(),
         extras: Default::default(),
         name: Some(std::string::String::from("Vertices0")),
@@ -83,8 +83,8 @@ fn export(
 
     let index_buffer_view = gltf_json::buffer::View {
         buffer: gltf_json::Index::new(0),
-        byte_length: (index_data.len() * mem::size_of::<u32>()) as u32,
-        byte_offset: Some((vertices.len() * mem::size_of::<Vertex>()) as u32),
+        byte_length: mem::size_of_val(index_data).into(),
+        byte_offset: Some((vertices.len() * mem::size_of::<Vertex>()).into()),
         byte_stride: None,
         extensions: Default::default(),
         extras: Default::default(),
@@ -94,8 +94,8 @@ fn export(
 
     let positions = gltf_json::Accessor {
         buffer_view: Some(gltf_json::Index::new(0)),
-        byte_offset: 0,
-        count: vertices.len() as u32,
+        byte_offset: Some(USize64::from(0usize)),
+        count: vertices.len().into(),
         component_type: Valid(gltf_json::accessor::GenericComponentType(
             gltf_json::accessor::ComponentType::F32,
         )),
@@ -110,8 +110,8 @@ fn export(
     };
     let colors = gltf_json::Accessor {
         buffer_view: Some(gltf_json::Index::new(0)),
-        byte_offset: (3 * mem::size_of::<f32>()) as u32,
-        count: vertices.len() as u32,
+        byte_offset: Some((3 * mem::size_of::<f32>()).into()),
+        count: vertices.len().into(),
         component_type: Valid(gltf_json::accessor::GenericComponentType(
             gltf_json::accessor::ComponentType::F32,
         )),
@@ -127,8 +127,8 @@ fn export(
 
     let indices = gltf_json::Accessor {
         buffer_view: Some(gltf_json::Index::new(1)),
-        byte_offset: 0,
-        count: index_data.len() as u32,
+        byte_offset: Some(USize64::from(0usize)),
+        count: index_data.len().into(),
         component_type: Valid(gltf_json::accessor::GenericComponentType(
             gltf_json::accessor::ComponentType::U32,
         )),
@@ -144,7 +144,7 @@ fn export(
 
     let primitive = gltf_json::mesh::Primitive {
         attributes: {
-            let mut map = std::collections::HashMap::new();
+            let mut map = std::collections::BTreeMap::new();
             map.insert(
                 Valid(gltf_json::mesh::Semantic::Positions),
                 gltf_json::Index::new(0),
@@ -224,9 +224,9 @@ fn export(
 
             let glb = gltf::binary::Glb {
                 header: gltf::binary::Header {
-                    magic: b"glTF".clone(),
+                    magic: *b"glTF",
                     version: 2,
-                    length: gltf_json_offset + vertex_buffer_length,
+                    length: gltf_json_offset + vertex_buffer_length.0 as u32,
                 },
                 bin: Some(Cow::Owned(bin)),
                 json: Cow::Owned(gltf_json_string.into_bytes()),

@@ -4,15 +4,21 @@
 /// but in order to keep the sample simple this was ommited.
 ///
 use meshtext::{Glyph, MeshGenerator, MeshText};
-use std::borrow::Cow;
-use wgpu::util::DeviceExt;
+use std::{
+    borrow::Cow,
+    sync::Arc,
+};
+use wgpu::{
+    MemoryHints,
+    util::DeviceExt,
+};
 use winit::{
     event::{Event, WindowEvent},
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::EventLoop,
     window::Window,
 };
 
-const SHADER: &'static str = r##"
+const SHADER: &str = r##"
 @vertex
 fn vs_main(@location(0) position: vec2<f32>) -> @builtin(position) vec4<f32> {
     let scale = vec3<f32>(2.0, 2.0, 2.0);
@@ -25,7 +31,7 @@ fn fs_main() -> @location(0) vec4<f32> {
 }
 "##;
 
-async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vertex_count: u32) {
+async fn run(event_loop: EventLoop<()>, window: Arc<Window>, vertex_data: &[u8], vertex_count: u32) {
     let size = window.inner_size();
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
         backends: wgpu::Backends::all(),
@@ -33,11 +39,9 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
         flags: wgpu::InstanceFlags::default(),
         gles_minor_version: wgpu::Gles3MinorVersion::Automatic,
     });
-    let surface = unsafe {
-        instance
-            .create_surface(&window)
-            .expect("Failed to create surface.")
-    };
+    let surface = instance
+            .create_surface(window.clone())
+            .expect("Failed to create surface.");
     let adapter = instance
         .request_adapter(&wgpu::RequestAdapterOptions {
             power_preference: wgpu::PowerPreference::default(),
@@ -51,9 +55,10 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
         .request_device(
             &wgpu::DeviceDescriptor {
                 label: None,
-                features: wgpu::Features::empty(),
-                limits: wgpu::Limits::downlevel_webgl2_defaults()
+                required_features: wgpu::Features::empty(),
+                required_limits: wgpu::Limits::downlevel_webgl2_defaults()
                     .using_resolution(adapter.limits()),
+                memory_hints: MemoryHints::Performance,
             },
             None,
         )
@@ -88,7 +93,8 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
         layout: Some(&pipeline_layout),
         vertex: wgpu::VertexState {
             module: &shader,
-            entry_point: "vs_main",
+            entry_point: Some("vs_main"),
+            compilation_options: Default::default(),
             buffers: &[wgpu::VertexBufferLayout {
                 array_stride: std::mem::size_of::<f32>() as wgpu::BufferAddress * 2,
                 step_mode: wgpu::VertexStepMode::Vertex,
@@ -97,7 +103,8 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
         },
         fragment: Some(wgpu::FragmentState {
             module: &shader,
-            entry_point: "fs_main",
+            entry_point: Some("fs_main"),
+            compilation_options: Default::default(),
             targets: &[Some(swapchain_format.into())],
         }),
         primitive: wgpu::PrimitiveState {
@@ -109,6 +116,7 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
         depth_stencil: None,
         multisample: wgpu::MultisampleState::default(),
         multiview: None,
+        cache: None,
     });
 
     let mut config = wgpu::SurfaceConfiguration {
@@ -119,14 +127,15 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
         usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
         view_formats: vec![],
         width: size.width,
+        desired_maximum_frame_latency: 2,
     };
 
     surface.configure(&device, &config);
 
-    event_loop.run(move |event, _, control_flow| {
+    #[allow(deprecated)]
+    let _ = event_loop.run(move |event: Event<()>, event_loop| {
         let _ = (&instance, &adapter, &shader, &pipeline_layout);
 
-        *control_flow = ControlFlow::Wait;
         match event {
             Event::WindowEvent {
                 event: WindowEvent::Resized(size),
@@ -137,7 +146,10 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
                 surface.configure(&device, &config);
                 window.request_redraw();
             }
-            Event::RedrawRequested(_) => {
+            Event::WindowEvent {
+                event: WindowEvent::RedrawRequested,
+                ..
+            } => {
                 let frame = surface
                     .get_current_texture()
                     .expect("Failed to acquire next swap chain texture");
@@ -172,7 +184,7 @@ async fn run(event_loop: EventLoop<()>, window: Window, vertex_data: &[u8], vert
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
                 ..
-            } => *control_flow = ControlFlow::Exit,
+            } => event_loop.exit(),
             _ => {}
         }
     });
@@ -190,9 +202,11 @@ fn get_vertices_for_a() -> Vec<f32> {
 }
 
 fn main() {
-    let event_loop = EventLoop::new();
-    let window = winit::window::Window::new(&event_loop).unwrap();
-    window.set_inner_size(winit::dpi::LogicalSize::new(600, 600));
+    let event_loop = EventLoop::new().expect("event_loop");
+    let window_attributes = Window::default_attributes()
+        .with_inner_size(winit::dpi::LogicalSize::new(600.0, 600.0));
+    #[allow(deprecated)]
+    let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
 
     let text_vertices = get_vertices_for_a();
     let mut raw_data: Vec<u8> = Vec::new();
