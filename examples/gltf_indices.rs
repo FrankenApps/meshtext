@@ -57,8 +57,8 @@ fn export(
         }
     }
 
-    let vertex_buffer_length = (vertices.len() * mem::size_of::<Vertex>()
-        + mem::size_of_val(index_data)).into();
+    let vertex_buffer_length =
+        (vertices.len() * mem::size_of::<Vertex>() + mem::size_of_val(index_data)).into();
     let vertex_buffer = gltf_json::Buffer {
         byte_length: vertex_buffer_length,
         extensions: Default::default(),
