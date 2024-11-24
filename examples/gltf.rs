@@ -4,7 +4,7 @@
 ///
 use std::{fs, mem};
 
-use gltf_json::validation::Checked::Valid;
+use gltf_json::validation::{Checked::Valid, USize64};
 use meshtext::{BoundingBox, MeshGenerator, MeshText, TextSection};
 use std::borrow::Cow;
 use std::io::Write;
@@ -39,19 +39,19 @@ fn to_padded_byte_vector<T>(vec: Vec<T>) -> Vec<u8> {
     new_vec
 }
 
-fn export(data: &Vec<f32>, bbox: &BoundingBox, color: [f32; 3], output: Output) {
+fn export(data: &[f32], bbox: &BoundingBox, color: [f32; 3], output: Output) {
     let mut vertices: Vec<Vertex> = vec![];
     for i in 0..data.len() {
         // Add new vertex with the provided color.
         if i % 3 == 2 {
             vertices.push(Vertex {
                 position: [data[i - 2], data[i - 1], data[i]],
-                color: color,
+                color,
             });
         }
     }
 
-    let buffer_length = (vertices.len() * mem::size_of::<Vertex>()) as u32;
+    let buffer_length = (vertices.len() * mem::size_of::<Vertex>()).into();
     let buffer = gltf_json::Buffer {
         byte_length: buffer_length,
         extensions: Default::default(),
@@ -66,8 +66,8 @@ fn export(data: &Vec<f32>, bbox: &BoundingBox, color: [f32; 3], output: Output) 
     let buffer_view = gltf_json::buffer::View {
         buffer: gltf_json::Index::new(0),
         byte_length: buffer.byte_length,
-        byte_offset: Some(0),
-        byte_stride: Some(mem::size_of::<Vertex>() as u32),
+        byte_offset: Some(USize64::from(0usize)),
+        byte_stride: Some(gltf_json::buffer::Stride(mem::size_of::<Vertex>())),
         extensions: Default::default(),
         extras: Default::default(),
         name: Some(std::string::String::from("Vertices0")),
@@ -76,8 +76,8 @@ fn export(data: &Vec<f32>, bbox: &BoundingBox, color: [f32; 3], output: Output) 
 
     let positions = gltf_json::Accessor {
         buffer_view: Some(gltf_json::Index::new(0)),
-        byte_offset: 0,
-        count: vertices.len() as u32,
+        byte_offset: Some(USize64::from(0usize)),
+        count: vertices.len().into(),
         component_type: Valid(gltf_json::accessor::GenericComponentType(
             gltf_json::accessor::ComponentType::F32,
         )),
@@ -92,8 +92,8 @@ fn export(data: &Vec<f32>, bbox: &BoundingBox, color: [f32; 3], output: Output) 
     };
     let colors = gltf_json::Accessor {
         buffer_view: Some(gltf_json::Index::new(0)),
-        byte_offset: (3 * mem::size_of::<f32>()) as u32,
-        count: vertices.len() as u32,
+        byte_offset: Some((3 * mem::size_of::<f32>()).into()),
+        count: vertices.len().into(),
         component_type: Valid(gltf_json::accessor::GenericComponentType(
             gltf_json::accessor::ComponentType::F32,
         )),
@@ -109,7 +109,7 @@ fn export(data: &Vec<f32>, bbox: &BoundingBox, color: [f32; 3], output: Output) 
 
     let primitive = gltf_json::mesh::Primitive {
         attributes: {
-            let mut map = std::collections::HashMap::new();
+            let mut map = std::collections::BTreeMap::new();
             map.insert(
                 Valid(gltf_json::mesh::Semantic::Positions),
                 gltf_json::Index::new(0),
@@ -184,9 +184,9 @@ fn export(data: &Vec<f32>, bbox: &BoundingBox, color: [f32; 3], output: Output) 
             align_to_multiple_of_four(&mut gltf_json_offset);
             let glb = gltf::binary::Glb {
                 header: gltf::binary::Header {
-                    magic: b"glTF".clone(),
+                    magic: *b"glTF",
                     version: 2,
-                    length: gltf_json_offset + buffer_length,
+                    length: gltf_json_offset + buffer_length.0 as u32,
                 },
                 bin: Some(Cow::Owned(to_padded_byte_vector(vertices))),
                 json: Cow::Owned(gltf_json_string.into_bytes()),
