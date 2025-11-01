@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+* Update `glam` dependency
+---
 ## Version 0.3.1
 * Add the option substitute a glyph with a custom mesh in the glyph cache
 ---
