@@ -1,3 +1,7 @@
+use ghx_constrained_delaunay::{
+    constrained_triangulation::ConstrainedTriangulationConfiguration,
+    triangulation::TriangulationError, types::Edge,
+};
 use glam::Vec3A;
 
 use crate::{
@@ -8,7 +12,7 @@ use crate::{
 use super::{triangulate_between_edges, triangulate_between_edges_indexed};
 
 type EdgeIndices = (usize, usize);
-type TriangleIndices = (usize, usize, usize);
+type TriangleIndices = [u32; 3];
 
 /// Generates a triangle mesh from a discrete [GlyphOutline].
 ///
@@ -32,9 +36,21 @@ pub(crate) fn raster_to_mesh(
     if flat {
         let mut vertices = Vec::new();
         for i in triangles {
-            vertices.push(Vec3A::new(points[i.0].0, points[i.0].1, 0f32));
-            vertices.push(Vec3A::new(points[i.1].0, points[i.1].1, 0f32));
-            vertices.push(Vec3A::new(points[i.2].0, points[i.2].1, 0f32));
+            vertices.push(Vec3A::new(
+                points[i[0] as usize].0,
+                points[i[0] as usize].1,
+                0f32,
+            ));
+            vertices.push(Vec3A::new(
+                points[i[1] as usize].0,
+                points[i[1] as usize].1,
+                0f32,
+            ));
+            vertices.push(Vec3A::new(
+                points[i[2] as usize].0,
+                points[i[2] as usize].1,
+                0f32,
+            ));
         }
 
         Ok(vertices)
@@ -42,15 +58,39 @@ pub(crate) fn raster_to_mesh(
         let mut vertices = Vec::new();
         for i in triangles {
             // The first triangle.
-            vertices.push(Vec3A::new(points[i.0].0, points[i.0].1, 0.5f32));
-            vertices.push(Vec3A::new(points[i.1].0, points[i.1].1, 0.5f32));
-            vertices.push(Vec3A::new(points[i.2].0, points[i.2].1, 0.5f32));
+            vertices.push(Vec3A::new(
+                points[i[0] as usize].0,
+                points[i[0] as usize].1,
+                0.5f32,
+            ));
+            vertices.push(Vec3A::new(
+                points[i[1] as usize].0,
+                points[i[1] as usize].1,
+                0.5f32,
+            ));
+            vertices.push(Vec3A::new(
+                points[i[2] as usize].0,
+                points[i[2] as usize].1,
+                0.5f32,
+            ));
 
             // The second triangle.
             // The order of vertices is changed, so that the triangle faces outward.
-            vertices.push(Vec3A::new(points[i.2].0, points[i.2].1, -0.5f32));
-            vertices.push(Vec3A::new(points[i.1].0, points[i.1].1, -0.5f32));
-            vertices.push(Vec3A::new(points[i.0].0, points[i.0].1, -0.5f32));
+            vertices.push(Vec3A::new(
+                points[i[2] as usize].0,
+                points[i[2] as usize].1,
+                -0.5f32,
+            ));
+            vertices.push(Vec3A::new(
+                points[i[1] as usize].0,
+                points[i[1] as usize].1,
+                -0.5f32,
+            ));
+            vertices.push(Vec3A::new(
+                points[i[0] as usize].0,
+                points[i[0] as usize].1,
+                -0.5f32,
+            ));
         }
 
         // Finally add the triangles in between the contours (e.g. in the z-axis).
@@ -88,9 +128,9 @@ pub(crate) fn raster_to_mesh_indexed(
 
         let mut indices = Vec::new();
         for i in triangles {
-            indices.push(i.0 as u32);
-            indices.push(i.1 as u32);
-            indices.push(i.2 as u32);
+            indices.push(i[0]);
+            indices.push(i[1]);
+            indices.push(i[2]);
         }
 
         Ok((vertices, indices))
@@ -107,13 +147,13 @@ pub(crate) fn raster_to_mesh_indexed(
 
         let mut indices = Vec::new();
         for i in triangles {
-            indices.push(i.0 as u32);
-            indices.push(i.1 as u32);
-            indices.push(i.2 as u32);
+            indices.push(i[0]);
+            indices.push(i[1]);
+            indices.push(i[2]);
 
-            indices.push(i.2 as u32 + flat_count);
-            indices.push(i.1 as u32 + flat_count);
-            indices.push(i.0 as u32 + flat_count);
+            indices.push(i[2] + flat_count);
+            indices.push(i[1] + flat_count);
+            indices.push(i[0] + flat_count);
         }
 
         // Add the vertices and indices in between the contours (e.g. in the z-axis).
@@ -127,14 +167,14 @@ fn get_glyph_area_triangulation(
     outline: &GlyphOutline,
 ) -> Result<(Vec<TriangleIndices>, Vec<EdgeIndices>), Box<dyn MeshTextError>> {
     // TODO: Implement a custom triangulation algorithm to get rid of these conversions.
-    let points: Vec<(f64, f64)> = outline
+    let points: Vec<ghx_constrained_delaunay::glam::Vec2> = outline
         .points
         .iter()
-        .map(|p| (p.0 as f64, p.1 as f64))
+        .map(|p| ghx_constrained_delaunay::glam::Vec2::new(p.0, p.1))
         .collect();
     let mut contours = Vec::new();
     for c in outline.contours.iter() {
-        let path_indices: Vec<usize> = c.iter().map(|i| *i as usize).collect();
+        let path_indices: Vec<u32> = c.iter().map(|i| *i).collect();
         contours.push(path_indices);
     }
 
@@ -143,21 +183,33 @@ fn get_glyph_area_triangulation(
     for c in contours.iter() {
         let next = edges.len();
         for (a, b) in c.iter().zip(c.iter().skip(1)) {
-            edges.push((*a, *b));
+            edges.push(Edge::new(*a, *b));
         }
         if let Some(start) = edges.get(next) {
-            if start.0 != edges.last().unwrap().1 {
+            if start.from != edges.last().unwrap().to {
                 return Err(Box::new(crate::error::GlyphTriangulationError(
-                    cdt::Error::OpenContour,
+                    //cdt::Error::OpenContour,
+                    TriangulationError {
+                        msg: "Open contour.".to_string(),
+                    },
                 )));
             }
         }
     }
 
+    let configuration = ConstrainedTriangulationConfiguration::default();
+
     // Triangulate the contours.
-    let triangles = match cdt::triangulate_with_edges(&points, &edges) {
+    let triangles = match ghx_constrained_delaunay::constrained_triangulation::constrained_triangulation_from_2d_vertices(&points, &edges, configuration) {
         Ok(result) => result,
         Err(err) => return Err(Box::new(GlyphTriangulationError(err))),
     };
-    Ok((triangles, edges))
+
+    Ok((
+        triangles.triangles,
+        edges
+            .iter()
+            .map(|e| (e.from as usize, e.to as usize))
+            .collect(),
+    ))
 }

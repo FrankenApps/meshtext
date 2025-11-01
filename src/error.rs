@@ -22,7 +22,7 @@ impl fmt::Display for GlyphOutlineError {
 
 /// An error that can occur while triangulating the outline of a font.
 #[derive(Debug)]
-pub struct GlyphTriangulationError(pub cdt::Error);
+pub struct GlyphTriangulationError(pub ghx_constrained_delaunay::triangulation::TriangulationError);
 
 impl MeshTextError for GlyphTriangulationError {}
 

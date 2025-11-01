@@ -16,7 +16,7 @@ keywords = ["graphics", "gamedev", "delaunay", "render", "triangulation"]
 categories = ["graphics", "game-development", "rendering"]
 
 [dependencies]
-cdt = "0.1.0"
+ghx_constrained_delaunay = "0.2.0"
 glam = "0.30"
 owned_ttf_parser = { version = "0.25", optional = true }
 ttf-parser = "0.25"
