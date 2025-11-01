@@ -18,7 +18,7 @@ fn plot_glyph_vertices() {
 }
 
 /// Test if the triangulation and outline generation of a single glyph (in this
-/// case the captial letter `A`) works as intended.
+/// case the capital letter `A`) works as intended.
 ///
 /// In the font used here, the letter `A` has no curves
 /// and is only composed of straight lines.
@@ -71,7 +71,7 @@ fn test_flat_glyph_lines() {
 }
 
 /// Test if the triangulation and outline generation of a single glyph (in this
-/// case the captial letter `A`) works as intended in the two-dimensional case.
+/// case the capital letter `A`) works as intended in the two-dimensional case.
 ///
 /// In the font used here, the letter `A` has no curves
 /// and is only composed of straight lines.
@@ -124,9 +124,9 @@ fn test_flat_glyph_lines_2d() {
 }
 
 /// Test if the triangulation and outline generation of a single glyph (in this
-/// case the captial letter `Ö`) works as intended.
+/// case the capital letter `Ö`) works as intended.
 ///
-/// In the font used here, the letter `Ö` is composed of quadratic bezier curves only.
+/// In the font used here, the letter `Ö` is composed of quadratic Bézier curves only.
 #[test]
 fn test_flat_glyph_quads() {
     let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");

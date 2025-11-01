@@ -79,7 +79,7 @@ mod borrowed_mesh_generator {
 
         /// Resolves a Glyph ID for a code point.
         ///
-        /// All subtable formats except Mixed Coverage (8) are supported.
+        /// All sub-table formats except Mixed Coverage (8) are supported.
         ///
         /// If you need a more low-level control, prefer `Face::tables().cmap`.
         ///
@@ -242,7 +242,7 @@ mod owned_mesh_generator {
 
         /// Resolves a Glyph ID for a code point.
         ///
-        /// All subtable formats except Mixed Coverage (8) are supported.
+        /// All sub-table formats except Mixed Coverage (8) are supported.
         ///
         /// If you need a more low-level control, prefer `Face::tables().cmap`.
         ///
@@ -416,7 +416,7 @@ where
     ///
     /// Arguments:
     ///
-    /// * `glyph`: The glyph that will be precached. If the given glyph is already present in the
+    /// * `glyph`: The glyph that will be pre-cached. If the given glyph is already present in the
     ///   cache, it will be overwritten.
     /// * `flat`: Wether the flat or three-dimensional variant of the characters should be preloaded.
     ///   When set to `true` two coordinates per vertex must be specified in the `mesh`, otherwise three.
@@ -443,7 +443,7 @@ where
     ///     0f32, 0f32];
     /// let triangle_mesh = MeshText::new(triangle).unwrap();
     ///
-    /// // Substitue the uppercase letter 'A' with a triangle for non-indexed flat meshes.
+    /// // Substitute the uppercase letter 'A' with a triangle for non-indexed flat meshes.
     /// generator.precache_custom_glyph('A', true, &triangle_mesh).unwrap();
     /// ```
     pub fn precache_custom_glyph<M>(
@@ -490,9 +490,9 @@ where
     ///
     /// Arguments:
     ///
-    /// * `glyphs`: The glyphs that will be precached. Each character should appear exactly once.
+    /// * `glyphs`: The glyphs that will be pre-cached. Each character should appear exactly once.
     /// * `flat`: Wether the flat or three-dimensional variant of the characters should be preloaded.
-    ///   If both variants should be precached this function must be called twice with this parameter set
+    ///   If both variants should be pre-cached this function must be called twice with this parameter set
     ///   to `true` and `false`.
     /// * `cache`: An optional value that controls which cache will be filled. [None] means both caches will be filled.
     ///
@@ -510,7 +510,7 @@ where
     ///
     /// let common = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".to_string();
     ///
-    /// // Precache both flat and three-dimensional glyphs both for indexed and non-indexed meshes.
+    /// // Pre-cache both flat and three-dimensional glyphs both for indexed and non-indexed meshes.
     /// generator.precache_glyphs(&common, false, None);
     /// generator.precache_glyphs(&common, true, None);
     /// ```
@@ -534,7 +534,7 @@ where
                 }
             }
         } else {
-            // If no type is set explicitely, both variants will be precached.
+            // If no type is set explicitly, both variants will be pre-cached.
             for c in glyphs.chars() {
                 self.generate_glyph(c, flat, None)?;
             }
@@ -1207,7 +1207,7 @@ where
             }
             None => {
                 // The glyph has no outline so it is most likely a space or any other
-                // charcter that can not be displayed.
+                // character that can not be displayed.
                 // An empty mesh is cached for simplicity nevertheless.
                 depth = (0f32, 0f32);
                 (
@@ -1287,7 +1287,7 @@ where
             }
             None => {
                 // The glyph has no outline so it is most likely a space or any other
-                // charcter that can not be displayed.
+                // character that can not be displayed.
                 // An empty mesh is cached for simplicity nevertheless.
                 depth = (0f32, 0f32);
                 (

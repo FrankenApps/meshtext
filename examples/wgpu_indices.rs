@@ -1,7 +1,7 @@
 /// This example demonstrates how to draw a section of 2D text using wgpu.
 ///
-/// Please note that the characters would look better with antialiasing,
-/// but in order to keep the sample simple this was ommited.
+/// Please note that the characters would look better with anti-aliasing,
+/// but in order to keep the sample simple this was omitted.
 ///
 use meshtext::{IndexedMeshText, MeshGenerator, TextSection};
 use std::{borrow::Cow, sync::Arc};
@@ -224,7 +224,7 @@ impl ApplicationHandler for App {
                         .device
                         .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
                     {
-                        let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                        let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                             label: None,
                             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                                 view: &view,
@@ -238,13 +238,13 @@ impl ApplicationHandler for App {
                             occlusion_query_set: None,
                             timestamp_writes: None,
                         });
-                        rpass.set_vertex_buffer(0, instance.vertex_buffer.slice(..));
-                        rpass.set_index_buffer(
+                        render_pass.set_vertex_buffer(0, instance.vertex_buffer.slice(..));
+                        render_pass.set_index_buffer(
                             instance.index_buffer.slice(..),
                             wgpu::IndexFormat::Uint32,
                         );
-                        rpass.set_pipeline(&instance.render_pipeline);
-                        rpass.draw_indexed(0..self.index_count, 0, 0..1);
+                        render_pass.set_pipeline(&instance.render_pipeline);
+                        render_pass.draw_indexed(0..self.index_count, 0, 0..1);
                     }
 
                     instance.queue.submit(Some(encoder.finish()));

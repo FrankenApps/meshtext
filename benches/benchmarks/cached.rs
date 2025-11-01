@@ -11,7 +11,7 @@ fn load_cached_glyph(c: &mut Criterion) {
     let mut generator = MeshGenerator::new(font_data);
     generator
         .precache_glyphs("A", false, None)
-        .expect("Failed to precache characters.");
+        .expect("Failed to pre-cache characters.");
 
     c.bench_function("load cached glyph", |b| {
         b.iter(|| {
@@ -43,11 +43,12 @@ fn load_cached_section(c: &mut Criterion) {
     let mut generator = MeshGenerator::new(font_data);
     generator
         .precache_glyphs(
+            // cspell: disable-next-line
             "ABCDEFHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
             false,
             None,
         )
-        .expect("Failed to precache characters.");
+        .expect("Failed to pre-cache characters.");
 
     c.bench_function("load cached section", |b| {
         b.iter(|| {

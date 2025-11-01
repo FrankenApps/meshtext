@@ -3,7 +3,7 @@ use std::time::{Duration, Instant};
 use criterion::{criterion_group, Criterion};
 use meshtext::MeshGenerator;
 
-/// Measures the time required to precache the american
+/// Measures the time required to pre-cache the American
 /// alphabet for 3D characters.
 ///
 /// Arguments:
@@ -22,11 +22,12 @@ fn precache_benchmark(c: &mut Criterion) {
                 let start = Instant::now();
                 generator
                     .precache_glyphs(
+                        // cspell: disable-next-line
                         "ABCDEFHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
                         false,
                         None,
                     )
-                    .expect("Failed to precache characters.");
+                    .expect("Failed to pre-cache characters.");
                 total += start.elapsed();
             }
 

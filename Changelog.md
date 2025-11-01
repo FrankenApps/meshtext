@@ -1,7 +1,7 @@
 # Changelog
 
 ## Version 0.3.1
-* Add the option substitute a glyph with a custom mesh in the glyph cache.
+* Add the option substitute a glyph with a custom mesh in the glyph cache
 ---
 ## Version 0.3.0
 * Add `owned` feature using [`owned_ttf_parser`](https://crates.io/crates/owned_ttf_parser) for _more flexibility_ when loading fonts
@@ -16,5 +16,5 @@
 * Fix function signatures
 ---
 ## Version 0.1.1
-* Add precaching functionality
+* Add pre-caching functionality
 ---

@@ -5,7 +5,7 @@
 #[derive(Debug, Clone, Copy)]
 pub struct QualitySettings {
     /// The number of linear interpolation steps performed
-    /// on a _quadratic bezier curve_.
+    /// on a _quadratic Bézier curve_.
     ///
     /// If the specified font does not use _quadratic splines_
     /// this setting will have no effect.
@@ -14,7 +14,7 @@ pub struct QualitySettings {
     pub quad_interpolation_steps: u32,
 
     /// The number of quadratic interpolation steps performed
-    /// on a _cubic bezier curve_.
+    /// on a _cubic Bézier curve_.
     ///
     /// If the specified font does not use _cubic splines_
     /// this setting will have no effect.

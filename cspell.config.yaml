@@ -1,0 +1,31 @@
+version: "0.2"
+ignorePaths:
+  - assets/**
+  - docs/**
+  - .gitignore
+  - LICENSE
+  - target/**
+words:
+  - bbox
+  - cartesian
+  - cmap
+  - delaunay
+  - fifo
+  - FiraMono
+  - gamedev
+  - gles
+  - gltf
+  - glyf
+  - gvar
+  - meshtext
+  - multisample
+  - multiview
+  - precache
+  - rasterizing
+  - repr
+  - swapchain
+  - vecs
+  - webgl
+  - wgpu
+  - wgsl
+  - winit

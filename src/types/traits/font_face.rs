@@ -14,7 +14,7 @@ pub trait FontFace {
 
     /// Resolves a Glyph ID for a code point.
     ///
-    /// All subtable formats except Mixed Coverage (8) are supported.
+    /// All sub-table formats except Mixed Coverage (8) are supported.
     ///
     /// If you need a more low-level control, prefer `Face::tables().cmap`.
     ///

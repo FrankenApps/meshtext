@@ -21,7 +21,7 @@ fn optimizer_test() {
 ///
 /// * `path`: The output path to which the file will be written.
 /// * `data`: The vertex positions of a glyph or text section.
-/// * `optimized`: Wether the plotted vertecies were optimized.
+/// * `optimized`: Wether the plotted vertices were optimized.
 #[allow(unused)]
 fn plot_vertices_svg(
     path: &str,
