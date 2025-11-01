@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Allow accessing parsed `FontFace`
 * Update `glam` dependency
 ---
 ## Version 0.3.1

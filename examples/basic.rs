@@ -7,6 +7,10 @@ fn main() {
     let character = 'A';
     let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");
     let mut generator = MeshGenerator::new(font_data);
+
+    let font = generator.font();
+    println!("Loaded font with {} glyphs.", font.number_of_glyphs());
+
     let result: MeshText = generator
         .generate_glyph(character, true, None)
         .expect("Failed to generate glyph.");

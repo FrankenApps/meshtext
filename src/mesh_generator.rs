@@ -408,6 +408,14 @@ where
         }
     }
 
+    /// Gets a reference to the currently loaded [FontFace].
+    /// 
+    /// For example this allows reading out the [FontFace::height],
+    /// or retrieving the [FontFace::glyph_index] of a certain [char].
+    pub fn font(&self) -> &T {
+        &self.font
+    }
+
     /// Allows inserting a custom mesh into the internal cache that will be used for rendering
     /// the given `glyph`.
     ///
