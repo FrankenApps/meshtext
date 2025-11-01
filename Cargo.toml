@@ -1,6 +1,6 @@
 [package]
 name = "meshtext"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2021"
 exclude = ["benches/*", "assets/*"]
 description = "Generate vertex-vertex meshes from text."
