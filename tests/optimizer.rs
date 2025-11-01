@@ -51,7 +51,7 @@ fn plot_vertices_svg(
         ]);
     }
 
-    // DIsplay the vertex and triangle count.
+    // Display the vertex and triangle count.
     let vertices_text = format!("Vertices: {}", data.len() / 3);
     let triangles_text = format!("Triangles: {}", triangles.len());
     root.draw_text(
