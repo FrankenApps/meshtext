@@ -24,7 +24,7 @@ impl IndexedMeshText {
     ///
     /// * `indices`: The indices used to construct a triangle mesh from the supplied `vertices`.
     /// * `vertices`: The vertices forming the mesh. Each vertex is composed of three [f32]
-    ///    values in the order _XYZ_. If the mesh is flat the third component must be set to zero.
+    ///   values in the order _XYZ_. If the mesh is flat the third component must be set to zero.
     ///
     /// Returns:
     ///

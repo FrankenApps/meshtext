@@ -64,7 +64,7 @@ impl BoundingBox {
             return Ok(BoundingBox::empty());
         }
 
-        if component_count % 3 != 0 {
+        if !component_count.is_multiple_of(3) {
             return Err(Box::new(VertexError));
         }
 

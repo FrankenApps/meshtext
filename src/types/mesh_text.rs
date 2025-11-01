@@ -18,7 +18,7 @@ impl MeshText {
     /// Arguments:
     ///
     /// * `vertices`: The vertices forming the mesh. Each vertex is composed of three [f32]
-    ///    values in the order _XYZ_. If the mesh is flat the third component must be set to zero.
+    ///   values in the order _XYZ_. If the mesh is flat the third component must be set to zero.
     ///
     /// Returns:
     ///
