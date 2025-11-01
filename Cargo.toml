@@ -21,12 +21,12 @@ default = []
 owned = ["dep:owned_ttf_parser"]
 
 [dev-dependencies]
-criterion = { version = "0.5", features = ["html_reports"] }
+criterion = { version = "0.7", features = ["html_reports"] }
 gltf-json = "1"
 gltf = "1"
 plotters = "0.3"
 pollster = "0.4"
-wgpu = "23"
+wgpu = "27"
 winit = "0.30"
 
 [[bench]]
