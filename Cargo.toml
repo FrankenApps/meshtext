@@ -2,7 +2,12 @@
 name = "meshtext"
 version = "0.3.2"
 edition = "2021"
-exclude = ["benches/*", "assets/*"]
+exclude = [
+    "assets/*",
+    "benches/*",
+    "cspell.config.yaml",
+    "logo.png",
+]
 description = "Generate vertex-vertex meshes from text."
 readme = "README.md"
 repository = "https://github.com/FrankenApps/meshtext"

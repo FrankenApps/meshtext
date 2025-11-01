@@ -54,4 +54,4 @@ additional terms or conditions.
 
 ## Screenshot
 
-![Meshtext Logo](logo.png "Screenshot")
+![Meshtext Logo](https://raw.githubusercontent.com/FrankenApps/meshtext/refs/heads/master/logo.png "Screenshot")
