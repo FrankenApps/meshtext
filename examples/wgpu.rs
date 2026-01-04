@@ -93,9 +93,9 @@ impl App {
         });
 
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: None,
             bind_group_layouts: &[],
-            push_constant_ranges: &[],
+            immediate_size: 0,
+            label: None,
         });
 
         let capabilities = surface.get_capabilities(&adapter);
@@ -137,7 +137,7 @@ impl App {
             },
             depth_stencil: None,
             multisample: wgpu::MultisampleState::default(),
-            multiview: None,
+            multiview_mask: None,
             cache: None,
         });
 
@@ -231,6 +231,7 @@ impl ApplicationHandler for App {
                                     },
                                 })],
                                 depth_stencil_attachment: None,
+                                multiview_mask: None,
                                 occlusion_query_set: None,
                                 timestamp_writes: None,
                             });
