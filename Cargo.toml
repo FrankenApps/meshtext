@@ -17,22 +17,22 @@ categories = ["graphics", "game-development", "rendering"]
 
 [dependencies]
 cdt = "0.1.0"
-glam = "0.30"
-skrifa = "0.47"
-self_cell = { version = "1", optional = true }
+glam = "0.33.8"
+skrifa = "0.47.0"
+self_cell = { version = "1.3.0", optional = true }
 
 [features]
 default = []
 owned = ["dep:self_cell"]
 
 [dev-dependencies]
-criterion = { version = "0.8", features = ["html_reports"] }
-gltf-json = "1"
-gltf = "1"
-plotters = "0.3"
-pollster = "0.4"
-wgpu = "28"
-winit = "0.30"
+criterion = { version = "0.8.2", features = ["html_reports"] }
+gltf-json = "1.4.1"
+gltf = "1.4.1"
+plotters = "0.3.7"
+pollster = "1.0.1"
+wgpu = "30.0.1"
+winit = "0.30.13"
 
 [[bench]]
 name = "bench_main"

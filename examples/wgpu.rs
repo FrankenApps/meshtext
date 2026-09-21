@@ -45,9 +45,9 @@ struct App {
 }
 
 impl App {
-    async fn initialize(&mut self, window: &Arc<Window>) {
+    async fn initialize(&mut self, window: &Arc<Window>, event_loop: &ActiveEventLoop) {
         let size = window.inner_size();
-        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::all(),
             flags: wgpu::InstanceFlags::default(),
             backend_options: wgpu::BackendOptions {
@@ -61,7 +61,9 @@ impl App {
                 },
                 ..Default::default()
             },
-            ..Default::default()
+            ..wgpu::InstanceDescriptor::new_with_display_handle(Box::new(
+                event_loop.owned_display_handle(),
+            ))
         });
         let surface = instance
             .create_surface(window.clone())
@@ -71,6 +73,7 @@ impl App {
                 power_preference: wgpu::PowerPreference::default(),
                 force_fallback_adapter: false,
                 compatible_surface: Some(&surface),
+                ..Default::default()
             })
             .await
             .expect("Failed to find an appropriate adapter");
@@ -117,11 +120,11 @@ impl App {
                 module: &shader,
                 entry_point: Some("vs_main"),
                 compilation_options: Default::default(),
-                buffers: &[wgpu::VertexBufferLayout {
+                buffers: &[Some(wgpu::VertexBufferLayout {
                     array_stride: std::mem::size_of::<f32>() as wgpu::BufferAddress * 2,
                     step_mode: wgpu::VertexStepMode::Vertex,
                     attributes: &wgpu::vertex_attr_array![0 => Float32x2],
-                }],
+                })],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
@@ -144,6 +147,7 @@ impl App {
         let config = wgpu::SurfaceConfiguration {
             alpha_mode: wgpu::CompositeAlphaMode::Auto,
             format: swapchain_format,
+            color_space: wgpu::SurfaceColorSpace::Auto,
             height: size.height,
             present_mode: wgpu::PresentMode::Fifo,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
@@ -184,7 +188,7 @@ impl ApplicationHandler for App {
                     .unwrap(),
             );
 
-            pollster::block_on(self.initialize(&window));
+            pollster::block_on(self.initialize(&window, event_loop));
 
             self.window = Some(window);
         }
@@ -207,10 +211,22 @@ impl ApplicationHandler for App {
             }
             WindowEvent::RedrawRequested => {
                 if let Some(instance) = &self.instance_data {
-                    let frame = instance
-                        .surface
-                        .get_current_texture()
-                        .expect("Failed to acquire next swap chain texture");
+                    let frame = match instance.surface.get_current_texture() {
+                        wgpu::CurrentSurfaceTexture::Success(frame)
+                        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
+                        wgpu::CurrentSurfaceTexture::Timeout
+                        | wgpu::CurrentSurfaceTexture::Occluded => return,
+                        wgpu::CurrentSurfaceTexture::Outdated => {
+                            instance
+                                .surface
+                                .configure(&instance.device, &instance.config);
+                            if let Some(window) = &self.window {
+                                window.request_redraw();
+                            }
+                            return;
+                        }
+                        status => panic!("Failed to acquire next swap chain texture: {status:?}"),
+                    };
                     let view = frame
                         .texture
                         .create_view(&wgpu::TextureViewDescriptor::default());
@@ -241,7 +257,7 @@ impl ApplicationHandler for App {
                     }
 
                     instance.queue.submit(Some(encoder.finish()));
-                    frame.present();
+                    instance.queue.present(frame);
                 }
             }
             WindowEvent::CloseRequested => event_loop.exit(),

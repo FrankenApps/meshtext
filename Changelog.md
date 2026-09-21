@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+* Upgrade all direct dependencies to their latest stable releases, including `glam` 0.33.8, `pollster` 1.0.1 and `wgpu` 30.0.1.
+* Adapt the rendering examples to the wgpu 30 instance, surface and presentation APIs.
+* **Breaking:** Public bounding-box vectors now use `glam` 0.33 types.
 * **Breaking:** Exposed font types, metadata methods and parser errors now use skrifa.
 * Replace `ttf-parser` and `owned_ttf_parser` with `skrifa` for both font modes.
 * Preserve `owned` constructors taking `Vec<u8>` with a parsed, movable `OwnedFace`.
