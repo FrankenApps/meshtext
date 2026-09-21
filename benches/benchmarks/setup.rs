@@ -12,6 +12,8 @@ fn setup_benchmark(c: &mut Criterion) {
 
     c.bench_function("setup", |b| {
         b.iter(|| {
+            #[cfg(feature = "owned")]
+            let font_data = font_data.to_vec();
             let _generator = MeshGenerator::new(font_data);
         });
     });

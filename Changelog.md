@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+* **Breaking:** Exposed font types, metadata methods and parser errors now use skrifa.
+* Replace `ttf-parser` and `owned_ttf_parser` with `skrifa` for both font modes.
+* Preserve `owned` constructors taking `Vec<u8>` with a parsed, movable `OwnedFace`.
+* Allow non-static font buffers in borrowed constructors.
+* Handle implicitly closed outlines and report outline drawing failures.
+---
 ## Version 0.3.2
 * Allow accessing parsed `FontFace`
 * Update `glam` dependency

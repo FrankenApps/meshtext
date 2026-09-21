@@ -17,11 +17,14 @@
 /// while using this crate.
 pub mod error;
 
+#[cfg(feature = "owned")]
+mod owned_face;
+
 // Re-export the faces.
 #[cfg(feature = "owned")]
-pub use owned_ttf_parser::OwnedFace;
+pub use owned_face::OwnedFace;
 #[cfg(not(feature = "owned"))]
-pub use ttf_parser::Face;
+pub use skrifa::FontRef as Face;
 
 mod mesh_generator;
 pub use mesh_generator::MeshGenerator;

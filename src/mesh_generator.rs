@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use glam::{Mat3, Mat4, Vec2, Vec3, Vec3A};
-use ttf_parser::GlyphId;
+use skrifa::GlyphId;
 
 use crate::{
     error::MeshTextError,
@@ -59,118 +59,18 @@ where
 
 #[cfg(not(feature = "owned"))]
 mod borrowed_mesh_generator {
+    use crate::{MeshGenerator, QualitySettings};
     use std::collections::HashMap;
 
-    use ttf_parser::GlyphId;
-
-    use crate::{FontFace, MeshGenerator, QualitySettings};
-
-    impl FontFace for ttf_parser::Face<'_> {
-        /// Computes glyph's horizontal advance.
-        ///
-        /// This method is affected by variation axes.
-        ///
-        /// Returns:
-        ///
-        /// The horizontal advance of the glyph.
-        fn glyph_hor_advance(&self, glyph_id: GlyphId) -> Option<u16> {
-            ttf_parser::Face::glyph_hor_advance(self, glyph_id)
-        }
-
-        /// Resolves a Glyph ID for a code point.
-        ///
-        /// All sub-table formats except Mixed Coverage (8) are supported.
-        ///
-        /// If you need a more low-level control, prefer `Face::tables().cmap`.
-        ///
-        /// Returns:
-        ///
-        /// The [GlyphId] or `None` when the glyph is not found.
-        fn glyph_index(&self, code_point: char) -> Option<GlyphId> {
-            ttf_parser::Face::glyph_index(self, code_point)
-        }
-
-        /// Computes the face's height.
-        ///
-        /// This method is affected by variation axes.
-        ///
-        /// Returns:
-        ///
-        /// The line height.
-        fn height(&self) -> i16 {
-            ttf_parser::Face::height(self)
-        }
-
-        /// Outlines a glyph and returns its tight bounding box.
-        ///
-        /// **Warning**: since `ttf-parser` is a pull parser,
-        /// `OutlineBuilder` will emit segments even when outline is partially malformed.
-        /// You must check `outline_glyph()` result before using
-        /// `OutlineBuilder`'s output.
-        ///
-        /// `gvar`, `glyf`, `CFF` and `CFF2` tables are supported.
-        /// And they will be accesses in this specific order.
-        ///
-        /// This method is affected by variation axes.
-        ///
-        /// Returns `None` when glyph has no outline or on error.
-        ///
-        /// # Example
-        ///
-        /// ```
-        /// use std::fmt::Write;
-        /// use ttf_parser;
-        ///
-        /// struct Builder(String);
-        ///
-        /// impl ttf_parser::OutlineBuilder for Builder {
-        ///     fn move_to(&mut self, x: f32, y: f32) {
-        ///         write!(&mut self.0, "M {} {} ", x, y).unwrap();
-        ///     }
-        ///
-        ///     fn line_to(&mut self, x: f32, y: f32) {
-        ///         write!(&mut self.0, "L {} {} ", x, y).unwrap();
-        ///     }
-        ///
-        ///     fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
-        ///         write!(&mut self.0, "Q {} {} {} {} ", x1, y1, x, y).unwrap();
-        ///     }
-        ///
-        ///     fn curve_to(&mut self, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32) {
-        ///         write!(&mut self.0, "C {} {} {} {} {} {} ", x1, y1, x2, y2, x, y).unwrap();
-        ///     }
-        ///
-        ///     fn close(&mut self) {
-        ///         write!(&mut self.0, "Z ").unwrap();
-        ///     }
-        /// }
-        ///
-        /// let data = std::fs::read("assets/font/FiraMono-Regular.ttf").unwrap();
-        /// let face = ttf_parser::Face::parse(&data, 0).unwrap();
-        /// let mut builder = Builder(String::new());
-        /// let bbox = face.outline_glyph(ttf_parser::GlyphId(36), &mut builder).unwrap();
-        /// assert_eq!(builder.0, "M 161 176 L 106 0 L 20 0 L 245 689 L 355 689 L 579 0 L 489 0 \
-        ///                        L 434 176 L 161 176 Z M 411 248 L 298 615 L 184 248 L 411 248 Z ");
-        /// assert_eq!(bbox, ttf_parser::Rect { x_min: 20, y_min: 0, x_max: 579, y_max: 689 });
-        /// ```
-        fn outline_glyph(
-            &self,
-            glyph_id: GlyphId,
-            builder: &mut dyn ttf_parser::OutlineBuilder,
-        ) -> Option<ttf_parser::Rect> {
-            ttf_parser::Face::outline_glyph(self, glyph_id, builder)
-        }
-    }
-
-    impl MeshGenerator<ttf_parser::Face<'_>> {
+    impl<'a> MeshGenerator<skrifa::FontRef<'a>> {
         /// Creates a new [MeshGenerator].
         ///
         /// Arguments:
         ///
         /// * `font`: The font that will be used for rasterizing.
-        pub fn new(font: &'static [u8]) -> Self {
+        pub fn new(font: &'a [u8]) -> Self {
             let face =
-                ttf_parser::Face::parse(font, 0).expect("Failed to generate font from data.");
+                skrifa::FontRef::from_index(font, 0).expect("Failed to generate font from data.");
 
             Self {
                 cache: HashMap::new(),
@@ -187,9 +87,9 @@ mod borrowed_mesh_generator {
         ///
         /// * `font`: The font that will be used for rasterizing.
         /// * `quality`: The [QualitySettings] that should be used.
-        pub fn new_with_quality(font: &'static [u8], quality: QualitySettings) -> Self {
+        pub fn new_with_quality(font: &'a [u8], quality: QualitySettings) -> Self {
             let face =
-                ttf_parser::Face::parse(font, 0).expect("Failed to generate font from data.");
+                skrifa::FontRef::from_index(font, 0).expect("Failed to generate font from data.");
 
             Self {
                 cache: HashMap::new(),
@@ -206,9 +106,9 @@ mod borrowed_mesh_generator {
         ///
         /// * `font`: The font that will be used for rasterizing.
         /// * `quality`: The [QualitySettings] that should be used.
-        pub fn new_without_cache(font: &'static [u8], quality: QualitySettings) -> Self {
+        pub fn new_without_cache(font: &'a [u8], quality: QualitySettings) -> Self {
             let face =
-                ttf_parser::Face::parse(font, 0).expect("Failed to generate font from data.");
+                skrifa::FontRef::from_index(font, 0).expect("Failed to generate font from data.");
 
             Self {
                 cache: HashMap::new(),
@@ -223,107 +123,8 @@ mod borrowed_mesh_generator {
 
 #[cfg(feature = "owned")]
 mod owned_mesh_generator {
-    use crate::{FontFace, MeshGenerator, QualitySettings};
+    use crate::{MeshGenerator, OwnedFace, QualitySettings};
     use std::collections::HashMap;
-
-    use owned_ttf_parser::{AsFaceRef, OwnedFace};
-
-    impl FontFace for OwnedFace {
-        /// Computes glyph's horizontal advance.
-        ///
-        /// This method is affected by variation axes.
-        ///
-        /// Returns:
-        ///
-        /// The horizontal advance of the glyph.
-        fn glyph_hor_advance(&self, glyph_id: owned_ttf_parser::GlyphId) -> Option<u16> {
-            self.as_face_ref().glyph_hor_advance(glyph_id)
-        }
-
-        /// Resolves a Glyph ID for a code point.
-        ///
-        /// All sub-table formats except Mixed Coverage (8) are supported.
-        ///
-        /// If you need a more low-level control, prefer `Face::tables().cmap`.
-        ///
-        /// Returns:
-        ///
-        /// The [GlyphId] or `None` when the glyph is not found.
-        fn glyph_index(&self, code_point: char) -> Option<owned_ttf_parser::GlyphId> {
-            self.as_face_ref().glyph_index(code_point)
-        }
-
-        /// Computes the face's height.
-        ///
-        /// This method is affected by variation axes.
-        ///
-        /// Returns:
-        ///
-        /// The line height.
-        fn height(&self) -> i16 {
-            self.as_face_ref().height()
-        }
-
-        /// Outlines a glyph and returns its tight bounding box.
-        ///
-        /// **Warning**: since `ttf-parser` is a pull parser,
-        /// `OutlineBuilder` will emit segments even when outline is partially malformed.
-        /// You must check `outline_glyph()` result before using
-        /// `OutlineBuilder`'s output.
-        ///
-        /// `gvar`, `glyf`, `CFF` and `CFF2` tables are supported.
-        /// And they will be accesses in this specific order.
-        ///
-        /// This method is affected by variation axes.
-        ///
-        /// Returns `None` when glyph has no outline or on error.
-        ///
-        /// # Example
-        ///
-        /// ```
-        /// use std::fmt::Write;
-        /// use ttf_parser;
-        ///
-        /// struct Builder(String);
-        ///
-        /// impl ttf_parser::OutlineBuilder for Builder {
-        ///     fn move_to(&mut self, x: f32, y: f32) {
-        ///         write!(&mut self.0, "M {} {} ", x, y).unwrap();
-        ///     }
-        ///
-        ///     fn line_to(&mut self, x: f32, y: f32) {
-        ///         write!(&mut self.0, "L {} {} ", x, y).unwrap();
-        ///     }
-        ///
-        ///     fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
-        ///         write!(&mut self.0, "Q {} {} {} {} ", x1, y1, x, y).unwrap();
-        ///     }
-        ///
-        ///     fn curve_to(&mut self, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32) {
-        ///         write!(&mut self.0, "C {} {} {} {} {} {} ", x1, y1, x2, y2, x, y).unwrap();
-        ///     }
-        ///
-        ///     fn close(&mut self) {
-        ///         write!(&mut self.0, "Z ").unwrap();
-        ///     }
-        /// }
-        ///
-        /// let data = std::fs::read("assets/font/FiraMono-Regular.ttf").unwrap();
-        /// let face = ttf_parser::Face::parse(&data, 0).unwrap();
-        /// let mut builder = Builder(String::new());
-        /// let bbox = face.outline_glyph(ttf_parser::GlyphId(36), &mut builder).unwrap();
-        /// assert_eq!(builder.0, "M 161 176 L 106 0 L 20 0 L 245 689 L 355 689 L 579 0 L 489 0 \
-        ///                        L 434 176 L 161 176 Z M 411 248 L 298 615 L 184 248 L 411 248 Z ");
-        /// assert_eq!(bbox, ttf_parser::Rect { x_min: 20, y_min: 0, x_max: 579, y_max: 689 });
-        /// ```
-        fn outline_glyph(
-            &self,
-            glyph_id: owned_ttf_parser::GlyphId,
-            builder: &mut dyn owned_ttf_parser::OutlineBuilder,
-        ) -> Option<owned_ttf_parser::Rect> {
-            self.as_face_ref().outline_glyph(glyph_id, builder)
-        }
-    }
 
     impl MeshGenerator<OwnedFace> {
         /// Creates a new [MeshGenerator].
@@ -398,6 +199,8 @@ where
     /// use meshtext::MeshGenerator;
     ///
     /// let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");
+    /// # #[cfg(feature = "owned")]
+    /// # let font_data = font_data.to_vec();
     /// let mut generator = MeshGenerator::new(font_data);
     ///
     /// generator.clear_cache();
@@ -408,10 +211,11 @@ where
         }
     }
 
-    /// Gets a reference to the currently loaded [FontFace].
-    /// 
-    /// For example this allows reading out the [FontFace::height],
-    /// or retrieving the [FontFace::glyph_index] of a certain [char].
+    /// Gets a reference to the currently loaded font.
+    ///
+    /// Without `owned`, this is a [skrifa::FontRef]. With `owned`, call
+    /// `OwnedFace::as_face_ref` to access the same metadata API.
+    /// Import [skrifa::MetadataProvider] to query metrics and character mappings.
     pub fn font(&self) -> &T {
         &self.font
     }
@@ -443,6 +247,8 @@ where
     /// use meshtext::{MeshGenerator, MeshText};
     ///
     /// let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");
+    /// # #[cfg(feature = "owned")]
+    /// # let font_data = font_data.to_vec();
     /// let mut generator = MeshGenerator::new(font_data);
     ///
     /// let triangle: Vec<f32> = vec![
@@ -514,6 +320,8 @@ where
     /// use meshtext::MeshGenerator;
     ///
     /// let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");
+    /// # #[cfg(feature = "owned")]
+    /// # let font_data = font_data.to_vec();
     /// let mut generator = MeshGenerator::new(font_data);
     ///
     /// let common = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".to_string();
@@ -846,8 +654,8 @@ where
             let x_advance = self
                 .font
                 .glyph_hor_advance(self.glyph_id_of_char(first_glyph))
-                .unwrap_or(0) as f32
-                / self.font.height() as f32;
+                .unwrap_or(0.0)
+                / self.font.height();
 
             let transform =
                 base_transform * Mat4::from_translation(Vec3::new(overall_advance, 0f32, 0f32));
@@ -865,8 +673,8 @@ where
             let x_advance = self
                 .font
                 .glyph_hor_advance(self.glyph_id_of_char(glyph))
-                .unwrap_or(0) as f32
-                / self.font.height() as f32;
+                .unwrap_or(0.0)
+                / self.font.height();
 
             let transform =
                 base_transform * Mat4::from_translation(Vec3::new(overall_advance, 0f32, 0f32));
@@ -915,8 +723,8 @@ where
             let x_advance = self
                 .font
                 .glyph_hor_advance(self.glyph_id_of_char(first_glyph))
-                .unwrap_or(0) as f32
-                / self.font.height() as f32;
+                .unwrap_or(0.0)
+                / self.font.height();
 
             let transform =
                 base_transform * Mat3::from_translation(Vec2::new(overall_advance, 0f32));
@@ -934,8 +742,8 @@ where
             let x_advance = self
                 .font
                 .glyph_hor_advance(self.glyph_id_of_char(glyph))
-                .unwrap_or(0) as f32
-                / self.font.height() as f32;
+                .unwrap_or(0.0)
+                / self.font.height();
 
             let transform =
                 base_transform * Mat3::from_translation(Vec2::new(overall_advance, 0f32));
@@ -989,8 +797,8 @@ where
             let x_advance = self
                 .font
                 .glyph_hor_advance(self.glyph_id_of_char(first_glyph))
-                .unwrap_or(0) as f32
-                / self.font.height() as f32;
+                .unwrap_or(0.0)
+                / self.font.height();
 
             let transform =
                 base_transform * Mat4::from_translation(Vec3::new(overall_advance, 0f32, 0f32));
@@ -1014,8 +822,8 @@ where
             let x_advance = self
                 .font
                 .glyph_hor_advance(self.glyph_id_of_char(glyph))
-                .unwrap_or(0) as f32
-                / self.font.height() as f32;
+                .unwrap_or(0.0)
+                / self.font.height();
 
             let transform =
                 base_transform * Mat4::from_translation(Vec3::new(overall_advance, 0f32, 0f32));
@@ -1078,8 +886,8 @@ where
             let x_advance = self
                 .font
                 .glyph_hor_advance(self.glyph_id_of_char(first_glyph))
-                .unwrap_or(0) as f32
-                / self.font.height() as f32;
+                .unwrap_or(0.0)
+                / self.font.height();
 
             let transform =
                 base_transform * Mat3::from_translation(Vec2::new(overall_advance, 0f32));
@@ -1103,8 +911,8 @@ where
             let x_advance = self
                 .font
                 .glyph_hor_advance(self.glyph_id_of_char(glyph))
-                .unwrap_or(0) as f32
-                / self.font.height() as f32;
+                .unwrap_or(0.0)
+                / self.font.height();
 
             let transform =
                 base_transform * Mat3::from_translation(Vec2::new(overall_advance, 0f32));
@@ -1202,13 +1010,15 @@ where
         glyph: char,
         flat: bool,
     ) -> Result<Mesh, Box<dyn MeshTextError>> {
-        let font_height = self.font.height() as f32;
+        let font_height = self.font.height();
         let mut builder = GlyphOutlineBuilder::new(font_height, self.quality);
 
         let glyph_index = self.glyph_id_of_char(glyph);
 
+        self.font.outline_glyph(glyph_index, &mut builder)?;
+
         let mut depth = (0.5f32, -0.5f32);
-        let (rect, mesh) = match self.font.outline_glyph(glyph_index, &mut builder) {
+        let (rect, mesh) = match builder.bounds() {
             Some(bbox) => {
                 let mesh = raster_to_mesh(&builder.get_glyph_outline(), flat)?;
                 (bbox, mesh)
@@ -1218,15 +1028,7 @@ where
                 // character that can not be displayed.
                 // An empty mesh is cached for simplicity nevertheless.
                 depth = (0f32, 0f32);
-                (
-                    ttf_parser::Rect {
-                        x_min: 0,
-                        y_min: 0,
-                        x_max: 0,
-                        y_max: 0,
-                    },
-                    Vec::new(),
-                )
+                (skrifa::metrics::BoundingBox::default(), Vec::new())
             }
         };
 
@@ -1234,30 +1036,14 @@ where
         let bbox;
         if flat {
             bbox = BoundingBox {
-                max: Vec3A::new(
-                    rect.x_max as f32 / font_height,
-                    rect.y_max as f32 / font_height,
-                    0f32,
-                ),
-                min: Vec3A::new(
-                    rect.x_min as f32 / font_height,
-                    rect.y_min as f32 / font_height,
-                    0f32,
-                ),
+                max: Vec3A::new(rect.x_max / font_height, rect.y_max / font_height, 0f32),
+                min: Vec3A::new(rect.x_min / font_height, rect.y_min / font_height, 0f32),
             };
             self.cache.insert(glyph.to_string(), (mesh.clone(), bbox));
         } else {
             bbox = BoundingBox {
-                max: Vec3A::new(
-                    rect.x_max as f32 / font_height,
-                    rect.y_max as f32 / font_height,
-                    depth.0,
-                ),
-                min: Vec3A::new(
-                    rect.x_min as f32 / font_height,
-                    rect.y_min as f32 / font_height,
-                    depth.1,
-                ),
+                max: Vec3A::new(rect.x_max / font_height, rect.y_max / font_height, depth.0),
+                min: Vec3A::new(rect.x_min / font_height, rect.y_min / font_height, depth.1),
             };
             self.cache
                 .insert(format!("_{}", glyph), (mesh.clone(), bbox));
@@ -1282,13 +1068,15 @@ where
         glyph: char,
         flat: bool,
     ) -> Result<IndexedMesh, Box<dyn MeshTextError>> {
-        let font_height = self.font.height() as f32;
+        let font_height = self.font.height();
         let mut builder = GlyphOutlineBuilder::new(font_height, self.quality);
 
         let glyph_index = self.glyph_id_of_char(glyph);
 
+        self.font.outline_glyph(glyph_index, &mut builder)?;
+
         let mut depth = (0.5f32, -0.5f32);
-        let (rect, vertices, indices) = match self.font.outline_glyph(glyph_index, &mut builder) {
+        let (rect, vertices, indices) = match builder.bounds() {
             Some(bbox) => {
                 let mesh = raster_to_mesh_indexed(&builder.get_glyph_outline(), flat)?;
                 (bbox, mesh.0, mesh.1)
@@ -1299,12 +1087,7 @@ where
                 // An empty mesh is cached for simplicity nevertheless.
                 depth = (0f32, 0f32);
                 (
-                    ttf_parser::Rect {
-                        x_min: 0,
-                        y_min: 0,
-                        x_max: 0,
-                        y_max: 0,
-                    },
+                    skrifa::metrics::BoundingBox::default(),
                     Vec::new(),
                     Vec::new(),
                 )
@@ -1315,31 +1098,15 @@ where
         let bbox;
         if flat {
             bbox = BoundingBox {
-                max: Vec3A::new(
-                    rect.x_max as f32 / font_height,
-                    rect.y_max as f32 / font_height,
-                    0f32,
-                ),
-                min: Vec3A::new(
-                    rect.x_min as f32 / font_height,
-                    rect.y_min as f32 / font_height,
-                    0f32,
-                ),
+                max: Vec3A::new(rect.x_max / font_height, rect.y_max / font_height, 0f32),
+                min: Vec3A::new(rect.x_min / font_height, rect.y_min / font_height, 0f32),
             };
             self.indexed_cache
                 .insert(glyph.to_string(), (indices.clone(), vertices.clone(), bbox));
         } else {
             bbox = BoundingBox {
-                max: Vec3A::new(
-                    rect.x_max as f32 / font_height,
-                    rect.y_max as f32 / font_height,
-                    depth.0,
-                ),
-                min: Vec3A::new(
-                    rect.x_min as f32 / font_height,
-                    rect.y_min as f32 / font_height,
-                    depth.1,
-                ),
+                max: Vec3A::new(rect.x_max / font_height, rect.y_max / font_height, depth.0),
+                min: Vec3A::new(rect.x_min / font_height, rect.y_min / font_height, depth.1),
             };
             self.indexed_cache.insert(
                 format!("_{}", glyph),
@@ -1360,9 +1127,7 @@ where
     ///
     /// The corresponding [GlyphId].
     fn glyph_id_of_char(&self, glyph: char) -> GlyphId {
-        self.font
-            .glyph_index(glyph)
-            .unwrap_or(ttf_parser::GlyphId(0))
+        self.font.glyph_index(glyph).unwrap_or(GlyphId::NOTDEF)
     }
 }
 

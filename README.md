@@ -32,11 +32,23 @@ It is not recommended to use the font included in the crate. It is only included
 ## Cargo Features
 | Name | Description |
 | --- | --- |
-| `owned` | Uses [`owned_ttf_parser`](https://crates.io/crates/owned_ttf_parser) instead of [`ttf-parser`](https://crates.io/crates/ttf-parser) so that the **font** resources do not need to have a static lifetime. |
+| `owned` | Takes ownership of a `Vec<u8>` containing the font. The generator retains the bytes and parsed font, so it can outlive the loading scope and move between threads. |
+
+Both configurations use [`skrifa`](https://crates.io/crates/skrifa). Without `owned`,
+constructors borrow a `&[u8]` that must live as long as the generator; a static
+lifetime is no longer required. With `owned`, all three constructors still accept
+`Vec<u8>`. The font is parsed once, with [`self_cell`](https://crates.io/crates/self_cell)
+keeping the borrowed parser and its buffer together without leaking memory.
+
+```rust
+// With features = ["owned"]:
+let font_data = std::fs::read("assets/font/FiraMono-Regular.ttf").unwrap();
+let mut generator = meshtext::MeshGenerator::new(font_data);
+```
 
 ## Attribution
 - Depends heavily on [`cdt`](https://crates.io/crates/cdt) for triangulation.
-- Uses [`ttf-parser`](https://crates.io/crates/ttf-parser) for font loading.
+- Uses [`skrifa`](https://crates.io/crates/skrifa) for font loading and outlines.
 - Uses [`glam`](https://crates.io/crates/glam) for performing basic linear algebra.
 
 ## License

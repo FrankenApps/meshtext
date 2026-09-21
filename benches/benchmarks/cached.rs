@@ -8,6 +8,8 @@ use meshtext::{Glyph, IndexedMeshText, MeshGenerator, TextSection};
 /// * `c`: The [Criterion] benchmark manager.
 fn load_cached_glyph(c: &mut Criterion) {
     let font_data = include_bytes!("../../assets/font/FiraMono-Regular.ttf");
+    #[cfg(feature = "owned")]
+    let font_data = font_data.to_vec();
     let mut generator = MeshGenerator::new(font_data);
     generator
         .precache_glyphs("A", false, None)
@@ -40,6 +42,8 @@ const SECTION_TRANSFORM: [f32; 16] = [
 /// * `c`: The [Criterion] benchmark manager.
 fn load_cached_section(c: &mut Criterion) {
     let font_data = include_bytes!("../../assets/font/FiraMono-Regular.ttf");
+    #[cfg(feature = "owned")]
+    let font_data = font_data.to_vec();
     let mut generator = MeshGenerator::new(font_data);
     generator
         .precache_glyphs(

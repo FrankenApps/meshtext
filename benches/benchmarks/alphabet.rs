@@ -17,6 +17,8 @@ fn precache_benchmark(c: &mut Criterion) {
             let mut total = Duration::ZERO;
 
             for _ in 0..iters {
+                #[cfg(feature = "owned")]
+                let font_data = font_data.to_vec();
                 let mut generator = MeshGenerator::new(font_data);
 
                 let start = Instant::now();

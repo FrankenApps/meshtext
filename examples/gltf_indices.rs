@@ -241,6 +241,8 @@ fn main() {
     let blue = [0f32, 0f32, 1f32];
     let before = std::time::Instant::now();
     let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");
+    #[cfg(feature = "owned")]
+    let font_data = font_data.to_vec();
     let mut generator = MeshGenerator::new_with_quality(
         font_data,
         meshtext::QualitySettings {

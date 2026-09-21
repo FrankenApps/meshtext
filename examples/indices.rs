@@ -6,6 +6,8 @@ use meshtext::{Glyph, IndexedMeshText, MeshGenerator};
 fn main() {
     let character = 'L';
     let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");
+    #[cfg(feature = "owned")]
+    let font_data = font_data.to_vec();
     let mut generator = MeshGenerator::new(font_data);
     let result: IndexedMeshText = generator
         .generate_glyph(character, true, None)

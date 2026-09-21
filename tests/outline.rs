@@ -8,6 +8,8 @@ use meshtext::{Glyph, MeshGenerator, MeshText};
 fn plot_glyph_vertices() {
     let character = 'A';
     let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");
+    #[cfg(feature = "owned")]
+    let font_data = font_data.to_vec();
     let mut generator = MeshGenerator::new(font_data);
     let mesh: MeshText = generator
         .generate_glyph(character, true, None)
@@ -25,6 +27,8 @@ fn plot_glyph_vertices() {
 #[test]
 fn test_flat_glyph_lines() {
     let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");
+    #[cfg(feature = "owned")]
+    let font_data = font_data.to_vec();
     let mut generator = MeshGenerator::new(font_data);
     let mesh: MeshText = generator
         .generate_glyph('A', true, None)
@@ -78,6 +82,8 @@ fn test_flat_glyph_lines() {
 #[test]
 fn test_flat_glyph_lines_2d() {
     let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");
+    #[cfg(feature = "owned")]
+    let font_data = font_data.to_vec();
     let mut generator = meshtext::MeshGenerator::new(font_data);
     let mesh: MeshText = generator
         .generate_glyph_2d('A', Some(&glam::Mat3::IDENTITY.to_cols_array()))
@@ -130,6 +136,8 @@ fn test_flat_glyph_lines_2d() {
 #[test]
 fn test_flat_glyph_quads() {
     let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");
+    #[cfg(feature = "owned")]
+    let font_data = font_data.to_vec();
     let quality = meshtext::QualitySettings {
         quad_interpolation_steps: 3,
         cubic_interpolation_steps: 3,

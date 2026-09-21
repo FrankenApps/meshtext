@@ -21,6 +21,8 @@ pub trait TextSection<T> {
     /// use meshtext::{MeshGenerator, IndexedMeshText, TextSection};
     ///
     /// let font_data = include_bytes!("../../../assets/font/FiraMono-Regular.ttf");
+    /// # #[cfg(feature = "owned")]
+    /// # let font_data = font_data.to_vec();
     /// let mut generator = MeshGenerator::new(font_data);
     ///
     /// // Scale text section to 10% on z-axis.
@@ -62,6 +64,8 @@ pub trait TextSection<T> {
     /// use meshtext::{MeshGenerator, IndexedMeshText, TextSection};
     ///
     /// let font_data = include_bytes!("../../../assets/font/FiraMono-Regular.ttf");
+    /// # #[cfg(feature = "owned")]
+    /// # let font_data = font_data.to_vec();
     /// let mut generator = MeshGenerator::new(font_data);
     ///
     /// // Scale text section to 10%.

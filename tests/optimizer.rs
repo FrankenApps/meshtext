@@ -6,6 +6,8 @@ use meshtext::{MeshText, TextSection};
 fn optimizer_test() {
     let test_text = "Meshtext";
     let font_data = include_bytes!("../assets/font/FiraMono-Regular.ttf");
+    #[cfg(feature = "owned")]
+    let font_data = font_data.to_vec();
     let mut generator = meshtext::MeshGenerator::new(font_data);
     let mesh: MeshText = generator
         .generate_section("Meshtext", true, None)

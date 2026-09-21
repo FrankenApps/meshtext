@@ -18,12 +18,12 @@ categories = ["graphics", "game-development", "rendering"]
 [dependencies]
 cdt = "0.1.0"
 glam = "0.30"
-owned_ttf_parser = { version = "0.25", optional = true }
-ttf-parser = "0.25"
+skrifa = "0.47"
+self_cell = { version = "1", optional = true }
 
 [features]
 default = []
-owned = ["dep:owned_ttf_parser"]
+owned = ["dep:self_cell"]
 
 [dev-dependencies]
 criterion = { version = "0.8", features = ["html_reports"] }
