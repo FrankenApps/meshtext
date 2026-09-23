@@ -71,7 +71,7 @@ fn test_flat_glyph_lines() {
         0.088333331, 0f32, 0f32,
     ];
 
-    assert_eq!(expected, mesh.vertices);
+    assert_same_region(&expected, &mesh.vertices, 3);
 }
 
 /// Test if the triangulation and outline generation of a single glyph (in this
@@ -126,7 +126,7 @@ fn test_flat_glyph_lines_2d() {
         0.088333331, 0f32,
     ];
 
-    assert_eq!(expected, mesh.vertices);
+    assert_same_region(&expected, &mesh.vertices, 2);
 }
 
 /// Test if the triangulation and outline generation of a single glyph (in this
@@ -436,5 +436,52 @@ fn test_flat_glyph_quads() {
         0.1526646, 0.7285288, 0f32,
     ];
 
-    assert_eq!(expected, mesh.vertices);
+    assert_same_region(&expected, &mesh.vertices, 3);
+}
+
+/// Keep the old cdt snapshots as geometry oracles without depending on its
+/// triangle order or its choice of diagonal for cocircular vertices.
+fn assert_same_region(expected: &[f32], actual: &[f32], dimensions: usize) {
+    use std::collections::BTreeMap;
+    let boundary_and_area = |vertices: &[f32]| {
+        assert_eq!(vertices.len() % (dimensions * 3), 0);
+        let mut edges = BTreeMap::new();
+        let mut area = 0.0f64;
+        for triangle in vertices.chunks_exact(dimensions * 3) {
+            let points: Vec<_> = triangle
+                .chunks_exact(dimensions)
+                .map(|v| {
+                    assert!(v.iter().all(|x| x.is_finite()));
+                    if dimensions == 3 {
+                        assert_eq!(v[2], 0.0);
+                    }
+                    (v[0], v[1])
+                })
+                .collect();
+            let [a, b, c] = [points[0], points[1], points[2]];
+            let cross = (b.0 as f64 - a.0 as f64) * (c.1 as f64 - a.1 as f64)
+                - (b.1 as f64 - a.1 as f64) * (c.0 as f64 - a.0 as f64);
+            assert!(cross > 0.0, "degenerate or reversed triangle");
+            area += cross * 0.5;
+            for (a, b) in [(a, b), (b, c), (c, a)] {
+                let key = |p: (f32, f32)| {
+                    (
+                        if p.0 == 0.0 { 0 } else { p.0.to_bits() },
+                        if p.1 == 0.0 { 0 } else { p.1.to_bits() },
+                    )
+                };
+                let (a, b) = (key(a), key(b));
+                *edges
+                    .entry(if a < b { (a, b) } else { (b, a) })
+                    .or_insert(0) += 1;
+            }
+        }
+        assert!(edges.values().all(|&count| count <= 2));
+        edges.retain(|_, count| *count == 1);
+        (edges, area)
+    };
+    let (expected_boundary, expected_area) = boundary_and_area(expected);
+    let (actual_boundary, actual_area) = boundary_and_area(actual);
+    assert_eq!(actual_boundary, expected_boundary);
+    assert!((actual_area - expected_area).abs() < 1e-7);
 }

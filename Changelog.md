@@ -1,6 +1,13 @@
 # Changelog
 
 ## Unreleased
+* Replace `cdt` with a standalone constrained Delaunay triangulation module using native `f32` points and `u32` indices.
+* Split constraints at collinear input vertices, fixing the former `PointOnFixedEdge` failure and keeping extruded sides aligned with caps.
+* Add geometry/property tests, complex boundary regressions and font/extrusion integration tests.
+* Correct indexed text-section offsets when triangulation leaves unused duplicate vertices.
+* Add an isolated release benchmark comparing the replacement with `cdt`, including the old conversion overhead.
+* Optimize triangulation with a radial hull sweep, flat half-edges, local legalization, packed constraint endings and walk-based segment splitting; see `benches/triangulation-compare/RESULTS.md` for measured comparisons.
+* **Breaking:** `GlyphTriangulationError` now wraps `meshtext::triangulation::Error`; triangle ordering can change.
 * Upgrade all direct dependencies to their latest stable releases, including `glam` 0.33.8, `pollster` 1.0.1 and `wgpu` 30.0.1.
 * Adapt the rendering examples to the wgpu 30 instance, surface and presentation APIs.
 * **Breaking:** Public bounding-box vectors now use `glam` 0.33 types.

@@ -17,6 +17,9 @@
 /// while using this crate.
 pub mod error;
 
+/// Standalone constrained Delaunay triangulation using native outline types.
+pub mod triangulation;
+
 #[cfg(feature = "owned")]
 mod owned_face;
 

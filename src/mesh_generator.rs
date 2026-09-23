@@ -805,10 +805,9 @@ where
             let mut glyph_mesh =
                 self.generate_glyph_with_glam_transform_indexed(first_glyph, flat, &transform)?;
 
-            // Update index offset (note that glyph meshes can be empty).
-            if let Some(max) = glyph_mesh.0.iter().max() {
-                index_offset = *max + 1;
-            }
+            // Canonicalized duplicate points may leave unreferenced vertices.
+            // Offset by the full vertex buffer, not the largest used index.
+            index_offset += glyph_mesh.1.len() as u32;
 
             // Add vertices and replace bbox.
             mesh.0.append(&mut glyph_mesh.0);
@@ -835,10 +834,9 @@ where
                 *i += index_offset;
             }
 
-            // Update index offset (note that glyph meshes can be empty).
-            if let Some(max) = glyph_mesh.0.iter().max() {
-                index_offset = *max + 1;
-            }
+            // Canonicalized duplicate points may leave unreferenced vertices.
+            // Offset by the full vertex buffer, not the largest used index.
+            index_offset += glyph_mesh.1.len() as u32;
 
             // Add vertices and indices and adjust bbox.
             mesh.0.append(&mut glyph_mesh.0);
@@ -894,10 +892,9 @@ where
             let mut glyph_mesh =
                 self.generate_glyph_with_glam_transform_indexed_2d(first_glyph, &transform)?;
 
-            // Update index offset (note that glyph meshes can be empty).
-            if let Some(max) = glyph_mesh.0.iter().max() {
-                index_offset = *max + 1;
-            }
+            // Canonicalized duplicate points may leave unreferenced vertices.
+            // Offset by the full vertex buffer, not the largest used index.
+            index_offset += glyph_mesh.1.len() as u32;
 
             // Add vertices and replace bbox.
             mesh.0.append(&mut glyph_mesh.0);
@@ -924,10 +921,9 @@ where
                 *i += index_offset;
             }
 
-            // Update index offset (note that glyph meshes can be empty).
-            if let Some(max) = glyph_mesh.0.iter().max() {
-                index_offset = *max + 1;
-            }
+            // Canonicalized duplicate points may leave unreferenced vertices.
+            // Offset by the full vertex buffer, not the largest used index.
+            index_offset += glyph_mesh.1.len() as u32;
 
             // Add vertices and indices and adjust bbox.
             mesh.0.append(&mut glyph_mesh.0);

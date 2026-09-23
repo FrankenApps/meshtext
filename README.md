@@ -46,8 +46,18 @@ let font_data = std::fs::read("assets/font/FiraMono-Regular.ttf").unwrap();
 let mut generator = meshtext::MeshGenerator::new(font_data);
 ```
 
+## Triangulation
+
+The built-in constrained Delaunay triangulator accepts native outline coordinates
+and indices. It splits boundary segments at existing collinear points, including
+cases that previously failed with `PointOnFixedEdge`. Split boundaries are also
+used for extruded side walls. Closed contours use the even-odd fill rule.
+
+See [the triangulation module documentation](src/triangulation/README.md) for the
+API, geometry contract, limitations, tests and instructions for extracting it into
+an independent crate.
+
 ## Attribution
-- Depends heavily on [`cdt`](https://crates.io/crates/cdt) for triangulation.
 - Uses [`skrifa`](https://crates.io/crates/skrifa) for font loading and outlines.
 - Uses [`glam`](https://crates.io/crates/glam) for performing basic linear algebra.
 

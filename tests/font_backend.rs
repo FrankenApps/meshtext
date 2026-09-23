@@ -218,3 +218,60 @@ fn font_collections_are_supported() {
     assert!(!mesh.vertices.is_empty());
     assert_eq!(mesh.bbox.max.y, 689.0 / 1200.0);
 }
+
+#[test]
+fn bundled_font_glyphs_triangulate_at_multiple_quality_levels() {
+    for steps in [2, 5, 10] {
+        #[cfg(not(feature = "owned"))]
+        let data = FONT;
+        #[cfg(feature = "owned")]
+        let data = FONT.to_vec();
+        let mut generator = MeshGenerator::new_with_quality(
+            data,
+            QualitySettings {
+                quad_interpolation_steps: steps,
+                cubic_interpolation_steps: steps,
+            },
+        );
+        for glyph in (b'!'..=b'~').map(char::from).chain(['Ö']) {
+            let mesh: IndexedMeshText = generator
+                .generate_glyph(glyph, false, None)
+                .unwrap_or_else(|error| panic!("glyph {glyph:?}, steps {steps}: {error:?}"));
+            assert!(mesh.vertices.iter().all(|v| v.is_finite()));
+            for t in mesh.indices.chunks_exact(3) {
+                let a = glam::Vec3::from_slice(&mesh.vertices[t[0] as usize * 3..]);
+                let b = glam::Vec3::from_slice(&mesh.vertices[t[1] as usize * 3..]);
+                let c = glam::Vec3::from_slice(&mesh.vertices[t[2] as usize * 3..]);
+                assert!(
+                    (b - a).cross(c - a).length_squared() > 0.0,
+                    "degenerate face for {glyph:?}"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn indexed_sections_offset_by_vertex_count_including_unused_duplicates() {
+    let mut generator = generator(0);
+    let flat = IndexedMeshText {
+        bbox: meshtext::BoundingBox::new(glam::Vec3A::ZERO, glam::Vec3A::new(1., 1., 0.)),
+        indices: vec![0, 1, 2],
+        // A trailing duplicate may be unreferenced after canonicalization.
+        vertices: vec![0., 0., 1., 0., 0., 1., 0., 1.],
+    };
+    generator.precache_custom_glyph('A', true, &flat).unwrap();
+    let mesh: IndexedMeshText = generator.generate_section_2d("AA", None).unwrap();
+    assert_eq!(mesh.indices, vec![0, 1, 2, 4, 5, 6]);
+    let mesh: IndexedMeshText = generator.generate_section("AA", true, None).unwrap();
+    assert_eq!(mesh.indices, vec![0, 1, 2, 4, 5, 6]);
+    let extruded = IndexedMeshText {
+        vertices: vec![0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 1., 0.],
+        ..flat
+    };
+    generator
+        .precache_custom_glyph('A', false, &extruded)
+        .unwrap();
+    let mesh: IndexedMeshText = generator.generate_section("AA", false, None).unwrap();
+    assert_eq!(mesh.indices, vec![0, 1, 2, 4, 5, 6]);
+}

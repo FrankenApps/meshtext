@@ -17,18 +17,42 @@ const LOWER_Z: f32 = -0.5;
 pub(crate) fn triangulate_between_edges(
     vertices: &mut Vec<Vec3A>,
     points: &[(f32, f32)],
-    edges: &[(usize, usize)],
+    edges: &[(u32, u32)],
 ) {
     for edge in edges.iter() {
         // First triangle.
-        vertices.push(Vec3A::new(points[edge.0].0, points[edge.0].1, UPPER_Z));
-        vertices.push(Vec3A::new(points[edge.1].0, points[edge.1].1, UPPER_Z));
-        vertices.push(Vec3A::new(points[edge.0].0, points[edge.0].1, LOWER_Z));
+        vertices.push(Vec3A::new(
+            points[edge.0 as usize].0,
+            points[edge.0 as usize].1,
+            UPPER_Z,
+        ));
+        vertices.push(Vec3A::new(
+            points[edge.1 as usize].0,
+            points[edge.1 as usize].1,
+            UPPER_Z,
+        ));
+        vertices.push(Vec3A::new(
+            points[edge.0 as usize].0,
+            points[edge.0 as usize].1,
+            LOWER_Z,
+        ));
 
         // Second triangle.
-        vertices.push(Vec3A::new(points[edge.1].0, points[edge.1].1, LOWER_Z));
-        vertices.push(Vec3A::new(points[edge.0].0, points[edge.0].1, LOWER_Z));
-        vertices.push(Vec3A::new(points[edge.1].0, points[edge.1].1, UPPER_Z));
+        vertices.push(Vec3A::new(
+            points[edge.1 as usize].0,
+            points[edge.1 as usize].1,
+            LOWER_Z,
+        ));
+        vertices.push(Vec3A::new(
+            points[edge.0 as usize].0,
+            points[edge.0 as usize].1,
+            LOWER_Z,
+        ));
+        vertices.push(Vec3A::new(
+            points[edge.1 as usize].0,
+            points[edge.1 as usize].1,
+            UPPER_Z,
+        ));
     }
 }
 
@@ -45,19 +69,19 @@ pub(crate) fn triangulate_between_edges(
 pub(crate) fn triangulate_between_edges_indexed(
     vertices: &mut [Vec3A],
     indices: &mut Vec<u32>,
-    edges: &[(usize, usize)],
+    edges: &[(u32, u32)],
 ) {
     let flat_count = (vertices.len() / 2) as u32;
 
     for e in edges.iter() {
         // First triangle.
-        indices.push(e.0 as u32);
-        indices.push(e.1 as u32);
-        indices.push(flat_count + e.1 as u32);
+        indices.push(e.0);
+        indices.push(e.1);
+        indices.push(flat_count + e.1);
 
         // Second triangle.
-        indices.push(flat_count + e.0 as u32);
-        indices.push(e.0 as u32);
-        indices.push(flat_count + e.1 as u32);
+        indices.push(flat_count + e.0);
+        indices.push(e.0);
+        indices.push(flat_count + e.1);
     }
 }

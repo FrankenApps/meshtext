@@ -22,15 +22,19 @@ impl fmt::Display for GlyphOutlineError {
 
 /// An error that can occur while triangulating the outline of a font.
 #[derive(Debug)]
-pub struct GlyphTriangulationError(pub cdt::Error);
+pub struct GlyphTriangulationError(pub crate::triangulation::Error);
 
 impl MeshTextError for GlyphTriangulationError {}
 
-impl Error for GlyphTriangulationError {}
+impl Error for GlyphTriangulationError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        Some(&self.0)
+    }
+}
 
 impl fmt::Display for GlyphTriangulationError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "The glyph outline could not be triangulated.")
+        write!(f, "The glyph outline could not be triangulated: {}", self.0)
     }
 }
 
